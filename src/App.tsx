@@ -39,6 +39,9 @@ export default function App() {
     localStorage.setItem("MANUAL_SEND_SECRET", val);
   };
 
+  // Detect if running on deployed Netlify vs local dev
+  const isProduction = !window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0");
+
   // Fetch status of the daily tutor on load
   const fetchStatus = async () => {
     setLoadingStatus(true);
@@ -46,7 +49,13 @@ export default function App() {
     try {
       const res = await fetch("/.netlify/functions/lesson-status");
       if (!res.ok) {
-        throw new Error(`Server returned HTTP ${res.status}`);
+        // Try to get error body from function
+        let detail = `HTTP ${res.status}`;
+        try {
+          const body = await res.json();
+          detail = body.details || body.error || detail;
+        } catch {}
+        throw new Error(detail);
       }
       const data = await res.json();
       setStatus(data);
@@ -56,7 +65,11 @@ export default function App() {
       fetchPreview(data.dayNumber);
     } catch (err: any) {
       console.error("Failed to load tutor status:", err);
-      setErrorStatus("Verbindung fehlgeschlagen. Läuft 'netlify dev'?");
+      if (isProduction) {
+        setErrorStatus(`Funktion fehlgeschlagen: ${err.message}. Stellen Sie sicher, dass alle Umgebungsvariablen in Netlify konfiguriert sind (DATABASE_URL, GROQ_API_KEY, RESEND_API_KEY, etc.) und dass die Datenbank-Migration ausgeführt wurde.`);
+      } else {
+        setErrorStatus(`Verbindung fehlgeschlagen: ${err.message}. Starten Sie den Server mit: npx netlify dev`);
+      }
     } finally {
       setLoadingStatus(false);
     }
@@ -230,12 +243,12 @@ export default function App() {
           borderRadius: "12px", 
           marginBottom: "24px",
           display: "flex", 
-          alignItems: "center", 
+          alignItems: "flex-start", 
           gap: "10px" 
         }}>
-          <AlertCircle size={20} />
+          <AlertCircle size={20} style={{ flexShrink: 0, marginTop: "2px" }} />
           <div>
-            <strong>Verbindungsfehler:</strong> {errorStatus} (Stellen Sie sicher, dass Sie <code>netlify dev</code> in der Konsole ausführen.)
+            <strong>Fehler:</strong> {errorStatus}
           </div>
         </div>
       )}

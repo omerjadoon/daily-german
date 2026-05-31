@@ -14,6 +14,7 @@
     "@netlify/functions": "^2.6.0",
     "groq-sdk": "^0.9.0",
     "lucide-react": "^0.344.0",
+    "netlify": "^26.1.0",
     "postgres": "^3.4.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
