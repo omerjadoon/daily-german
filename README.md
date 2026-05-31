@@ -152,18 +152,7 @@ The tutoring curriculum spans **120 days** of progressive German education:
 ---
 
 ## 13. How to Configure Local `.env`
-Create a `.env` file in the root folder of the project. Fill in the values like this:
-```env
-DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@db.feufbmtzaekrbwrzjhfl.supabase.co:5432/postgres"
-GROQ_API_KEY="gsk_YOUR_GROQ_KEY"
-GROQ_MODEL="llama-3.3-70b-versatile"
-RESEND_API_KEY="re_YOUR_RESEND_KEY"
-EMAIL_FROM="German Tutor <learning@your-verified-domain.com>"
-EMAIL_TO="omerkhanjadoons@gmail.com"
-APP_TIMEZONE="Europe/Berlin"
-START_DATE="2026-06-01"
-MANUAL_SEND_SECRET="your-secure-secret-phrase"
-```
+Create a `.env` file in the root folder of the project. Fill in the values like in env.example.
 
 ---
 
