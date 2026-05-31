@@ -1,0 +1,41 @@
+{
+  "A0": [
+    "sein conjugation",
+    "personal pronouns (ich, du, er/sie/es)",
+    "simple sentence word order (SVO)",
+    "basic numbers"
+  ],
+  "A1": [
+    "present tense regular and irregular verbs",
+    "modal verbs (können, müssen, wollen, möchten)",
+    "indefinite and definite articles",
+    "accusative case (direct objects)",
+    "separable verbs",
+    "Präteritum of haben and sein (hatte, war)",
+    "prepositions with dative (mit, zu, von, nach)",
+    "Perfekt tense introduction with regular verbs"
+  ],
+  "A2": [
+    "Wechselpräpositionen (dative for static, accusative for motion)",
+    "adjective endings after definite articles",
+    "Konjunktiv II for advice and polite requests (sollte, könnten, würden)",
+    "subordinating conjunction 'weil' (reasons)",
+    "subordinating conjunction 'dass' (opinions)",
+    "subordinating conjunction 'wenn' (conditionals)",
+    "relative clauses in nominative and accusative",
+    "reflexive verbs (sich bewegen)",
+    "comparative and superlative forms"
+  ],
+  "B1": [
+    "passive voice in present tense and modal verbs",
+    "future tense (Futur I with werden)",
+    "connectors of concession (obwohl, trotzdem)",
+    "connectors of cause/effect (deshalb, deswegen, darum)",
+    "additive connectors (außerdem, darüber hinaus)",
+    "two-part connectors (sowohl... als auch, weder... noch)",
+    "infinitives with 'um... zu', 'ohne... zu', 'anstatt... zu'",
+    "relative clauses with prepositions",
+    "prepositions with genitive (wegen, trotz)",
+    "nominalization"
+  ]
+}

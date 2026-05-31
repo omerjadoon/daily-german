@@ -1,0 +1,1082 @@
+[
+  {
+    "day": 1,
+    "level": "A0",
+    "topic": "Introducing yourself",
+    "scenario": "A person introduces themselves to a new colleague at the office.",
+    "grammarFocus": ["sein", "personal pronouns", "simple sentence order"],
+    "vocabularyTheme": "personal information",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 2,
+    "level": "A0",
+    "topic": "Alphabet and Spelling",
+    "scenario": "Spelling your name on the phone to customer service.",
+    "grammarFocus": ["spelling", "sounds", "regular verb endings in present tense"],
+    "vocabularyTheme": "alphabet",
+    "telcSkill": "listening"
+  },
+  {
+    "day": 3,
+    "level": "A0",
+    "topic": "Numbers and Prices",
+    "scenario": "Asking how much groceries cost at a local market.",
+    "grammarFocus": ["numbers 1-100", "plurals of common currencies"],
+    "vocabularyTheme": "numbers and money",
+    "telcSkill": "reading"
+  },
+  {
+    "day": 4,
+    "level": "A1",
+    "topic": "High-Frequency Greetings",
+    "scenario": "Greeting neighbors and formal business partners.",
+    "grammarFocus": ["formal vs informal address", "du vs Sie", "present tense conjugation"],
+    "vocabularyTheme": "social greetings",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 5,
+    "level": "A1",
+    "topic": "Asking for Directions",
+    "scenario": "Looking for the central train station in Berlin.",
+    "grammarFocus": ["imperative requests", "wo-questions", "preposition 'zu' + dative"],
+    "vocabularyTheme": "city directions",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 6,
+    "level": "A1",
+    "topic": "Ordering a Drink",
+    "scenario": "Ordering coffee and water in a traditional German bakery.",
+    "grammarFocus": ["verb möchten", "accusative case for direct objects", "indefinite articles"],
+    "vocabularyTheme": "cafe and bakery",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 7,
+    "level": "A1",
+    "topic": "Family Members",
+    "scenario": "Describing your siblings and parents using a family photo.",
+    "grammarFocus": ["possessive determiners (mein, dein)", "family genders", "adjective predicate forms"],
+    "vocabularyTheme": "family members",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 8,
+    "level": "A1",
+    "topic": "Describing Hobbies",
+    "scenario": "Chatting at a party about sports, reading, and listening to music.",
+    "grammarFocus": ["verb preferences with gern", "modal verb 'können'", "word order in activity clauses"],
+    "vocabularyTheme": "hobbies and leisure",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 9,
+    "level": "A1",
+    "topic": "Days of the Week & Time",
+    "scenario": "Coordinating which day to go to the cinema with a friend.",
+    "grammarFocus": ["preposition 'am' + days", "preposition 'um' + exact time", "modal verb 'wollen'"],
+    "vocabularyTheme": "calendar days",
+    "telcSkill": "listening"
+  },
+  {
+    "day": 10,
+    "level": "A1",
+    "topic": "Telling the Time",
+    "scenario": "Checking when the next bus departs at the station.",
+    "grammarFocus": ["formal time (24h) vs informal time (halb, viertel vor/nach)", "wie spät questions"],
+    "vocabularyTheme": "clock time",
+    "telcSkill": "reading"
+  },
+  {
+    "day": 11,
+    "level": "A1",
+    "topic": "Food Preferences",
+    "scenario": "Talking about what you eat for breakfast, lunch, and dinner.",
+    "grammarFocus": ["verbs 'essen' and 'trinken' conjugations", "adverb 'lieber'", "negation with 'kein'"],
+    "vocabularyTheme": "food and meals",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 12,
+    "level": "A1",
+    "topic": "Supermarket Shopping",
+    "scenario": "Buying fresh vegetables, dairy, and bread at REWE.",
+    "grammarFocus": ["partitives (eine Flasche, ein Kilo)", "plural endings for nouns", "prices"],
+    "vocabularyTheme": "supermarket items",
+    "telcSkill": "reading"
+  },
+  {
+    "day": 13,
+    "level": "A1",
+    "topic": "Clothing Items",
+    "scenario": "Looking for a warm winter jacket in a retail store.",
+    "grammarFocus": ["demonstrative pronouns (dieser, dieses, diese)", "adjective agreement basics"],
+    "vocabularyTheme": "clothes and fashion",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 14,
+    "level": "A1",
+    "topic": "Colors & Sizes",
+    "scenario": "Confirming which clothing fits at the checkout counter.",
+    "grammarFocus": ["verb 'stehen' with dative", "comparative adjectives (größer, kleiner)"],
+    "vocabularyTheme": "colors and measurements",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 15,
+    "level": "A1",
+    "topic": "At Home: Rooms & Furniture",
+    "scenario": "Describing your new flat to your parents on a video call.",
+    "grammarFocus": ["preposition 'in' + dative", "there is (es gibt) + accusative"],
+    "vocabularyTheme": "furniture and apartment",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 16,
+    "level": "A1",
+    "topic": "Weather Talk",
+    "scenario": "Making small talk with a coworker about the rain and sun.",
+    "grammarFocus": ["impersonal expressions (es regnet, es ist kalt)", "comparisons"],
+    "vocabularyTheme": "weather",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 17,
+    "level": "A1",
+    "topic": "Expressing Capabilities",
+    "scenario": "Applying for a sports club and discussing what you can do.",
+    "grammarFocus": ["modal verb 'können'", "infinitive placement at the end of the sentence"],
+    "vocabularyTheme": "fitness and sports",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 18,
+    "level": "A1",
+    "topic": "Expressing Obligations",
+    "scenario": "Explaining why you must leave a friendly gathering early.",
+    "grammarFocus": ["modal verb 'müssen'", "obligations vs permission"],
+    "vocabularyTheme": "duties",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 19,
+    "level": "A1",
+    "topic": "Expressing Wishes",
+    "scenario": "Discussing your dream travel destination with a friend.",
+    "grammarFocus": ["modal verb 'möchten' vs 'wollen'", "conditional requests"],
+    "vocabularyTheme": "wishes and travel",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 20,
+    "level": "A1",
+    "topic": "Simple Questions",
+    "scenario": "Asking a receptionist for information at a community center.",
+    "grammarFocus": ["W-questions (Wer, Wie, Wo, Wann, Woher, Wohin)", "Yes/No questions (Ja/Nein-Fragen)"],
+    "vocabularyTheme": "general inquiries",
+    "telcSkill": "listening"
+  },
+  {
+    "day": 21,
+    "level": "A1",
+    "topic": "Commuting in the City",
+    "scenario": "Taking the S-Bahn or U-Bahn to work in Frankfurt.",
+    "grammarFocus": ["preposition 'mit' + dative", "means of transport"],
+    "vocabularyTheme": "public transportation",
+    "telcSkill": "listening"
+  },
+  {
+    "day": 22,
+    "level": "A1",
+    "topic": "Buying Tickets",
+    "scenario": "Using a ticket machine to purchase a day ticket.",
+    "grammarFocus": ["compounds (Tageskarte, Einzelfahrschein)", "instructional reading"],
+    "vocabularyTheme": "ticket machines",
+    "telcSkill": "reading"
+  },
+  {
+    "day": 23,
+    "level": "A1",
+    "topic": "A Typical Day",
+    "scenario": "Talking through your morning and evening routine.",
+    "grammarFocus": ["separable verbs (aufstehen, ankommen, fernsehen)", "verb position in separable clauses"],
+    "vocabularyTheme": "daily routines",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 24,
+    "level": "A1",
+    "topic": "Grocery Quantities",
+    "scenario": "Ordering sliced cheese and cold cuts at the fresh counter in a supermarket.",
+    "grammarFocus": ["partitives (Gramm, Scheiben)", "polite greetings at counters"],
+    "vocabularyTheme": "food counter",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 25,
+    "level": "A1",
+    "topic": "Ordering Food in a Restaurant",
+    "scenario": "Having dinner at a traditional German restaurant.",
+    "grammarFocus": ["accusative pronouns (mich, dich, ihn)", "request forms ('Ich hätte gern...')"],
+    "vocabularyTheme": "restaurant dining",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 26,
+    "level": "A1",
+    "topic": "Booking a Hotel Room",
+    "scenario": "Calling a hotel to book a double room with breakfast.",
+    "grammarFocus": ["modal verb 'dürfen'", "numbers up to 1000"],
+    "vocabularyTheme": "hotel reservation",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 27,
+    "level": "A1",
+    "topic": "Finding an Apartment Basics",
+    "scenario": "Reading a newspaper or online ad for a 2-room flat.",
+    "grammarFocus": ["common housing abbreviations (2 ZKB, KM, WM)", "adjectives for state (hell, ruhig)"],
+    "vocabularyTheme": "housing search",
+    "telcSkill": "reading"
+  },
+  {
+    "day": 28,
+    "level": "A1",
+    "topic": "At the Post Office",
+    "scenario": "Sending a package to friends abroad.",
+    "grammarFocus": ["preposition 'nach' vs 'in'", "weights and dimensions"],
+    "vocabularyTheme": "postal service",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 29,
+    "level": "A1",
+    "topic": "Daily House Chores",
+    "scenario": "Splitting cleaning duties between flatmates.",
+    "grammarFocus": ["separable verb combinations", "imperative plural ('räumt auf!', 'macht sauber!')"],
+    "vocabularyTheme": "housework",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 30,
+    "level": "A1",
+    "topic": "Weekend Activities",
+    "scenario": "Describing what you plan to do on Saturday and Sunday.",
+    "grammarFocus": ["adverbs of frequency (manchmal, oft, nie)", "future intent with present tense"],
+    "vocabularyTheme": "leisure and sports",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 31,
+    "level": "A1",
+    "topic": "Booking a Train Ticket",
+    "scenario": "Buying an ICE train ticket on the DB Navigator app.",
+    "grammarFocus": ["prepositions 'von' and 'nach'", "connecting train terminologies"],
+    "vocabularyTheme": "railway travel",
+    "telcSkill": "reading"
+  },
+  {
+    "day": 32,
+    "level": "A1",
+    "topic": "In the Pharmacy",
+    "scenario": "Buying painkillers and cough drops.",
+    "grammarFocus": ["impersonal suggestions ('Man sollte...')", "modal verb 'sollen'"],
+    "vocabularyTheme": "medicines",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 33,
+    "level": "A1",
+    "topic": "Visiting the Dentist",
+    "scenario": "Making an appointment for a toothache.",
+    "grammarFocus": ["prepositions 'vor' and 'nach' + dative for temporal order"],
+    "vocabularyTheme": "dental visits",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 34,
+    "level": "A1",
+    "topic": "Asking for Help in a Shop",
+    "scenario": "Looking for the fitting rooms in a large department store.",
+    "grammarFocus": ["prepositions 'neben', 'hinter' for local directions", "dative case"],
+    "vocabularyTheme": "shopping assistant",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 35,
+    "level": "A1",
+    "topic": "Talking About Family Structures",
+    "scenario": "Explaining your relatives and where they live.",
+    "grammarFocus": ["possessive determiners plural forms (unser, euer, ihr)"],
+    "vocabularyTheme": "extended family",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 36,
+    "level": "A1",
+    "topic": "Work Activities",
+    "scenario": "Describing your profession and main tasks.",
+    "grammarFocus": ["preposition 'als' for professional titles", "verb 'arbeiten' in past/present"],
+    "vocabularyTheme": "job fields",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 37,
+    "level": "A1",
+    "topic": "Working Hours and Breaks",
+    "scenario": "Agreeing on lunch break hours with colleagues.",
+    "grammarFocus": ["prepositions 'von... bis...' and 'ab' for starting times"],
+    "vocabularyTheme": "work scheduling",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 38,
+    "level": "A1",
+    "topic": "Daily School Routines",
+    "scenario": "Describing your school or college days in the past.",
+    "grammarFocus": ["simple past (Präteritum) of 'haben' and 'sein' (hatte, war)"],
+    "vocabularyTheme": "school memories",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 39,
+    "level": "A1",
+    "topic": "Making an Appointment",
+    "scenario": "Calling the local registration office (Bürgeramt) to book a slot.",
+    "grammarFocus": ["suggesting times with 'Wie passt es dir?'", "formal appointments"],
+    "vocabularyTheme": "appointments",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 40,
+    "level": "A1",
+    "topic": "Rescheduling an Appointment",
+    "scenario": "Postponing a meeting with a tutor.",
+    "grammarFocus": ["rescheduling verbs (verschieben, absagen)", "adverb 'leider'"],
+    "vocabularyTheme": "schedule adjustments",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 41,
+    "level": "A1",
+    "topic": "At the Bank",
+    "scenario": "Opening a Girokonto and asking about card fees.",
+    "grammarFocus": ["nouns with double plurals", "formal compound structures"],
+    "vocabularyTheme": "finance and cards",
+    "telcSkill": "reading"
+  },
+  {
+    "day": 42,
+    "level": "A1",
+    "topic": "Talking About Yesterday",
+    "scenario": "Telling a friend what you cooked and cleaned yesterday.",
+    "grammarFocus": ["past tense (Perfekt) with regular ge- verbs and helper 'haben'"],
+    "vocabularyTheme": "yesterday chores",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 43,
+    "level": "A1",
+    "topic": "Weekend Travel Memories",
+    "scenario": "Describing your weekend trip to Munich.",
+    "grammarFocus": ["past tense (Perfekt) with verbs of motion and helper 'sein' (ist gefahren, ist gegangen)"],
+    "vocabularyTheme": "past travel",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 44,
+    "level": "A1",
+    "topic": "Childhood Memories",
+    "scenario": "Telling where you lived and played as a child.",
+    "grammarFocus": ["Präteritum of modal verbs (musste, konnte, wollte)"],
+    "vocabularyTheme": "childhood days",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 45,
+    "level": "A1",
+    "topic": "Writing a Birthday Invitation",
+    "scenario": "Drafting a short invitation letter/email to friends.",
+    "grammarFocus": ["invitation structure", "temporal phrases (am Samstag ab 18 Uhr)"],
+    "vocabularyTheme": "party invitation",
+    "telcSkill": "writing"
+  },
+  {
+    "day": 46,
+    "level": "A1",
+    "topic": "Responding to Invitations",
+    "scenario": "Replying to an invitation to confirm your attendance.",
+    "grammarFocus": ["congratulatory phrases", "saying yes/no politely"],
+    "vocabularyTheme": "acceptance or refusal",
+    "telcSkill": "writing"
+  },
+  {
+    "day": 47,
+    "level": "A1",
+    "topic": "Giving Thanks",
+    "scenario": "Writing a thank-you note to a helpful neighbor.",
+    "grammarFocus": ["preposition 'für' + accusative", "dative verbs ('danken' + dative)"],
+    "vocabularyTheme": "gratitude",
+    "telcSkill": "writing"
+  },
+  {
+    "day": 48,
+    "level": "A1",
+    "topic": "Packing Luggage",
+    "scenario": "Deciding what to pack for a rainy holiday trip.",
+    "grammarFocus": ["indefinite pronouns (etwas, nichts, alles)"],
+    "vocabularyTheme": "travel gear",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 49,
+    "level": "A1",
+    "topic": "Clubs in Germany",
+    "scenario": "Inquiring about joining a local gardening or cycling club (Verein).",
+    "grammarFocus": ["compound nouns", "membership structures"],
+    "vocabularyTheme": "community clubs",
+    "telcSkill": "reading"
+  },
+  {
+    "day": 50,
+    "level": "A1",
+    "topic": "A1 Level Review",
+    "scenario": "Reviewing standard dialogues from the past 50 days.",
+    "grammarFocus": ["full present + Perfekt overview", "basic case declensions"],
+    "vocabularyTheme": "general A1",
+    "telcSkill": "reading"
+  },
+  {
+    "day": 51,
+    "level": "A2",
+    "topic": "Visiting a Doctor",
+    "scenario": "Describing flu symptoms to a general practitioner (GP).",
+    "grammarFocus": ["body parts vocabulary", "possessives with pain ('Mein Kopf tut weh')"],
+    "vocabularyTheme": "medical checkups",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 52,
+    "level": "A2",
+    "topic": "Physical Symptoms",
+    "scenario": "Explaining detailed stomach pains or throat soreness.",
+    "grammarFocus": ["adjectives for feelings (schwindelig, übel)", "dative structures ('Mir ist kalt')"],
+    "vocabularyTheme": "symptoms",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 53,
+    "level": "A2",
+    "topic": "Pharmacy and Prescriptions",
+    "scenario": "Getting a prescription filled at the Apotheke.",
+    "grammarFocus": ["modal verb 'dürfen' in negative (Verbot: 'Sie dürfen nicht...')"],
+    "vocabularyTheme": "pharmacy prescription",
+    "telcSkill": "listening"
+  },
+  {
+    "day": 54,
+    "level": "A2",
+    "topic": "At the Office",
+    "scenario": "Coordinating calendar schedules with standard email templates.",
+    "grammarFocus": ["adverbials of time (zuerst, danach, schließlich)"],
+    "vocabularyTheme": "office communications",
+    "telcSkill": "writing"
+  },
+  {
+    "day": 55,
+    "level": "A2",
+    "topic": "Office Chores Dative/Accusative",
+    "scenario": "Placing office supplies in files or on shelves.",
+    "grammarFocus": ["two-way prepositions (Wechselpräpositionen) with static Dative vs motion Accusative"],
+    "vocabularyTheme": "office supplies",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 56,
+    "level": "A2",
+    "topic": "Careers and Qualifications",
+    "scenario": "Describing your vocational training or university degree.",
+    "grammarFocus": ["past tense (Perfekt) of irregular verbs (hat abgeschlossen, hat bestanden)"],
+    "vocabularyTheme": "job qualifications",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 57,
+    "level": "A2",
+    "topic": "Describing your Apartment",
+    "scenario": "Describing the rooms, size, and layout of a rented flat.",
+    "grammarFocus": ["adjectives with colors", "adjective endings after definite articles"],
+    "vocabularyTheme": "apartment description",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 58,
+    "level": "A2",
+    "topic": "Problems with Neighbors",
+    "scenario": "Dealing with loud music after 10 PM (Nachtruhe).",
+    "grammarFocus": ["polite complaints ('Könnten Sie bitte...')", "modal verbs Konjunktiv II"],
+    "vocabularyTheme": "neighbor relations",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 59,
+    "level": "A2",
+    "topic": "Writing to the Landlord",
+    "scenario": "Reporting a broken heater in winter.",
+    "grammarFocus": ["formal email structure", "salutation (Sehr geehrte/r) and sign-off (Mit freundlichen Grüßen)"],
+    "vocabularyTheme": "landlord correspondence",
+    "telcSkill": "writing"
+  },
+  {
+    "day": 60,
+    "level": "A2",
+    "topic": "Moving Houses",
+    "scenario": "Hiring a moving service or asking friends to help carry boxes.",
+    "grammarFocus": ["verb helper 'helfen' + dative + infinitive with 'zu'"],
+    "vocabularyTheme": "relocation",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 61,
+    "level": "A2",
+    "topic": "Public Transport Delays",
+    "scenario": "Coping with canceled trains or delays on Deutsche Bahn.",
+    "grammarFocus": ["reasons using connector 'weil' (verb goes to end)"],
+    "vocabularyTheme": "transport delays",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 62,
+    "level": "A2",
+    "topic": "Driving in Germany",
+    "scenario": "Discussing speed limits on the Autobahn.",
+    "grammarFocus": ["impersonal 'man' + modal verbs (man darf, man muss)"],
+    "vocabularyTheme": "driving rules",
+    "telcSkill": "reading"
+  },
+  {
+    "day": 63,
+    "level": "A2",
+    "topic": "Renting a Car",
+    "scenario": "Renting an electric car at an airport station.",
+    "grammarFocus": ["relative pronouns in nominative and accusative cases"],
+    "vocabularyTheme": "car rental",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 64,
+    "level": "A2",
+    "topic": "Giving Advice",
+    "scenario": "Helping a friend who is stressed out at work.",
+    "grammarFocus": ["Konjunktiv II 'sollte' for advice giving"],
+    "vocabularyTheme": "stress advice",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 65,
+    "level": "A2",
+    "topic": "Polite Requests",
+    "scenario": "Asking a colleague to print a file for you.",
+    "grammarFocus": ["Konjunktiv II forms 'könnten' and 'würden'"],
+    "vocabularyTheme": "polite favors",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 66,
+    "level": "A2",
+    "topic": "Planning a Trip Together",
+    "scenario": "Deciding on weekend sightseeing spots in Munich.",
+    "grammarFocus": ["proposals with 'Wollen wir...?' or 'Wir könnten...'"],
+    "vocabularyTheme": "trip planning",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 67,
+    "level": "A2",
+    "topic": "Sightseeing Spots",
+    "scenario": "Asking a tourist center for historical highlights.",
+    "grammarFocus": ["passive voice in present tense basics ('wird gebaut', 'wird besucht')"],
+    "vocabularyTheme": "tourist sites",
+    "telcSkill": "reading"
+  },
+  {
+    "day": 68,
+    "level": "A2",
+    "topic": "Special Dietary Requirements",
+    "scenario": "Ordering gluten-free or vegan options at a restaurant.",
+    "grammarFocus": ["indefinite articles in dative ('mit einem', 'ohne' + accusative)"],
+    "vocabularyTheme": "allergies and diets",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 69,
+    "level": "A2",
+    "topic": "Restaurant Complaints",
+    "scenario": "Informing the waiter that your soup is cold.",
+    "grammarFocus": ["gentle but firm complaint phrasing ('Entschuldigung, aber...')"],
+    "vocabularyTheme": "service complaints",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 70,
+    "level": "A2",
+    "topic": "Shopping Online Pros/Cons",
+    "scenario": "Discussing with a friend if online shopping is better than retail.",
+    "grammarFocus": ["advantages (Vorteile) vs disadvantages (Nachteile) introductory clauses"],
+    "vocabularyTheme": "e-commerce",
+    "telcSkill": "reading"
+  },
+  {
+    "day": 71,
+    "level": "A2",
+    "topic": "Returning a Package",
+    "scenario": "Dropping off a return package at the DHL Paketshop.",
+    "grammarFocus": ["instructions in passive/imperative"],
+    "vocabularyTheme": "postal returns",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 72,
+    "level": "A2",
+    "topic": "Writing a Complaint Email",
+    "scenario": "Drafting an email about a late shipment.",
+    "grammarFocus": ["connector 'weil' and 'da' for reasoning"],
+    "vocabularyTheme": "written complaints",
+    "telcSkill": "writing"
+  },
+  {
+    "day": 73,
+    "level": "A2",
+    "topic": "Calling Customer Service",
+    "scenario": "Inquiring why your internet connection is down.",
+    "grammarFocus": ["polite question structures using 'ob' (indirect questions)"],
+    "vocabularyTheme": "telecom support",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 74,
+    "level": "A2",
+    "topic": "Describing a Broken Device",
+    "scenario": "Taking a laptop to the service shop under warranty.",
+    "grammarFocus": ["perfect tense of verbs with prefix 'be-', 'ent-', 'ver-' (no 'ge-')"],
+    "vocabularyTheme": "hardware repairs",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 75,
+    "level": "A2",
+    "topic": "Fitness & Lifestyle",
+    "scenario": "Discussing training habits at the gym.",
+    "grammarFocus": ["reflexive verbs (sich bewegen, sich ernähren) in accusative"],
+    "vocabularyTheme": "health habits",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 76,
+    "level": "A2",
+    "topic": "Recycling at Home",
+    "scenario": "Explaining the yellow bag (Gelber Sack) vs organic waste bins.",
+    "grammarFocus": ["passive voice present tense ('Müll wird getrennt')"],
+    "vocabularyTheme": "ecology",
+    "telcSkill": "reading"
+  },
+  {
+    "day": 77,
+    "level": "A2",
+    "topic": "Climate Change Discussion",
+    "scenario": "Giving simple opinions on green energy vs fossil fuels.",
+    "grammarFocus": ["connector 'dass' for opinions ('Ich finde, dass...')"],
+    "vocabularyTheme": "environment",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 78,
+    "level": "A2",
+    "topic": "Media Consumption",
+    "scenario": "Chatting about movies, YouTube, and Netflix.",
+    "grammarFocus": ["comparative forms (gern, lieber, am liebsten; gut, besser, am besten)"],
+    "vocabularyTheme": "entertainment media",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 79,
+    "level": "A2",
+    "topic": "Reading the News",
+    "scenario": "Discussing current news headlines with a colleague.",
+    "grammarFocus": ["adjectives with endings after indefinite articles (ein interessantes Thema)"],
+    "vocabularyTheme": "journalism",
+    "telcSkill": "reading"
+  },
+  {
+    "day": 80,
+    "level": "A2",
+    "topic": "German Festivals",
+    "scenario": "Explaining typical food and customs for Christmas in Germany.",
+    "grammarFocus": ["ordinal numbers in dates ('am 24. Dezember')"],
+    "vocabularyTheme": "cultural festivals",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 81,
+    "level": "A2",
+    "topic": "Cultural Differences",
+    "scenario": "Exchanging observations about daily life in Germany vs home.",
+    "grammarFocus": ["connector 'als' vs 'wenn' for past vs repeated events"],
+    "vocabularyTheme": "intercultural insights",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 82,
+    "level": "A2",
+    "topic": "Giving Reasons with 'weil'",
+    "scenario": "Explaining why you were late to an office standup.",
+    "grammarFocus": ["subordinating conjunction 'weil' word order"],
+    "vocabularyTheme": "apologies",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 83,
+    "level": "A2",
+    "topic": "Expressing Opinions with 'dass'",
+    "scenario": "Sharing thoughts on the importance of regular exercise.",
+    "grammarFocus": ["subordinating conjunction 'dass' word order"],
+    "vocabularyTheme": "opinions",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 84,
+    "level": "A2",
+    "topic": "Conditionals with 'wenn'",
+    "scenario": "Explaining what you will do if the weather is fine on Sunday.",
+    "grammarFocus": ["subordinating conjunction 'wenn' in conditional sentences"],
+    "vocabularyTheme": "weather forecasts",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 85,
+    "level": "A2",
+    "topic": "A2 Review & B1 Kickoff",
+    "scenario": "Reviewing compound sub-clauses and transition to complex discussions.",
+    "grammarFocus": ["review of subordinate clauses", "overview of B1 expectations"],
+    "vocabularyTheme": "language review",
+    "telcSkill": "reading"
+  },
+  {
+    "day": 86,
+    "level": "B1",
+    "topic": "telc B1 Exam Structure",
+    "scenario": "Studying the components of the telc B1 exam and writing down a prep strategy.",
+    "grammarFocus": ["future tense (Futur I with 'werden')", "exam verbs (bestehen, vorbereiten)"],
+    "vocabularyTheme": "exam preparation",
+    "telcSkill": "reading"
+  },
+  {
+    "day": 87,
+    "level": "B1",
+    "topic": "telc Speaking 1: Contact",
+    "scenario": "Practicing the initial chat (Kontaktaufnahme) with an exam partner.",
+    "grammarFocus": ["polite starter phrases", "asking friendly follow-up questions"],
+    "vocabularyTheme": "first impressions",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 88,
+    "level": "B1",
+    "topic": "telc Speaking 2: Topic Talk",
+    "scenario": "Presenting a small topic (e.g. your last holiday) to the examiners.",
+    "grammarFocus": ["structuring a presentation (Einleitung, Hauptteil, Schluss)"],
+    "vocabularyTheme": "presentations",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 89,
+    "level": "B1",
+    "topic": "telc Speaking 3: Planning Together",
+    "scenario": "Planning a surprise birthday party for a shared friend with your partner.",
+    "grammarFocus": ["proposing ideas, accepting and negotiating options politely"],
+    "vocabularyTheme": "collaborative planning",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 90,
+    "level": "B1",
+    "topic": "telc Writing: Formal Email",
+    "scenario": "Writing a formal request for information to a hotel in Hamburg.",
+    "grammarFocus": ["polite subjunctive statements ('Ich würde mich freuen...')", "formal formatting"],
+    "vocabularyTheme": "formal requests",
+    "telcSkill": "writing"
+  },
+  {
+    "day": 91,
+    "level": "B1",
+    "topic": "telc Writing: Informal Message",
+    "scenario": "Writing a message to a friend apologizing for missing their housewarming party.",
+    "grammarFocus": ["informal salutations", "expressing regrets", "suggesting alternative plans"],
+    "vocabularyTheme": "apologies and make-ups",
+    "telcSkill": "writing"
+  },
+  {
+    "day": 92,
+    "level": "B1",
+    "topic": "Writing a Complaint Letter",
+    "scenario": "Formally complaining about a vacation rental that did not match the description.",
+    "grammarFocus": ["expressing dissatisfaction ('Ich möchte mich beschweren...')", "formal connectives"],
+    "vocabularyTheme": "holiday complaints",
+    "telcSkill": "writing"
+  },
+  {
+    "day": 93,
+    "level": "B1",
+    "topic": "Request for Information",
+    "scenario": "Asking a university about their German courses and scholarship criteria.",
+    "grammarFocus": ["polite indirect questions ('Ich möchte fragen, ob...')", "prepositions + accusative/dative"],
+    "vocabularyTheme": "academic queries",
+    "telcSkill": "writing"
+  },
+  {
+    "day": 94,
+    "level": "B1",
+    "topic": "Advantages and Disadvantages",
+    "scenario": "Comparing public transport to buying a private car in Germany.",
+    "grammarFocus": ["contrasting phrases ('Einerseits... andererseits...', 'Auf der einen Seite...')"],
+    "vocabularyTheme": "mobility choices",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 95,
+    "level": "B1",
+    "topic": "Social Media Discussion",
+    "scenario": "Stating whether children should be allowed to use social media profiles.",
+    "grammarFocus": ["expressing agreement and disagreement ('Meiner Meinung nach...', 'Ich stimme zu')"],
+    "vocabularyTheme": "digital media",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 96,
+    "level": "B1",
+    "topic": "Remote Work Homeoffice",
+    "scenario": "Discussing the trend of remote work and its impact on work-life balance.",
+    "grammarFocus": ["connectors of concession ('obwohl' with verb at the end, 'trotzdem' with verb in position 2)"],
+    "vocabularyTheme": "modern work",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 97,
+    "level": "B1",
+    "topic": "Expressing Agreement",
+    "scenario": "Engaging in a debate about city-center pedestrian zones.",
+    "grammarFocus": ["phrases for full and partial agreement ('Das sehe ich auch so', 'Ich stimme teilweise zu')"],
+    "vocabularyTheme": "urban planning",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 98,
+    "level": "B1",
+    "topic": "Expressing Disagreement",
+    "scenario": "Politely countering a colleague's argument about longer office hours.",
+    "grammarFocus": ["polite objection phrases ('Das stimmt zwar, aber...', 'Da muss ich leider widersprechen')"],
+    "vocabularyTheme": "office debates",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 99,
+    "level": "B1",
+    "topic": "Connectors: deshalb, darum",
+    "scenario": "Explaining why learning German is crucial for your career progression.",
+    "grammarFocus": ["causal adverbial connectors ('deshalb', 'darum', 'deswegen' - verb position 2)"],
+    "vocabularyTheme": "career motivation",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 100,
+    "level": "B1",
+    "topic": "Connectors: obwohl, trotzdem",
+    "scenario": "Discussing hiking in bad weather because you love the nature.",
+    "grammarFocus": ["concessive subordinating 'obwohl' vs concessive adverbial 'trotzdem'"],
+    "vocabularyTheme": "outdoor sports",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 101,
+    "level": "B1",
+    "topic": "Connectors: außerdem, dazu",
+    "scenario": "Adding more points during an oral presentation on healthy diets.",
+    "grammarFocus": ["additive connectors ('außerdem', 'zudem', 'darüber hinaus' - verb position 2)"],
+    "vocabularyTheme": "health nutrition",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 102,
+    "level": "B1",
+    "topic": "Job Applications",
+    "scenario": "Reading a German job posting and preparing your CV (Lebenslauf).",
+    "grammarFocus": ["nominalization (Das Lernen, beim Arbeiten)", "prepositions with genitive ('wegen', 'trotz')"],
+    "vocabularyTheme": "job applications",
+    "telcSkill": "reading"
+  },
+  {
+    "day": 103,
+    "level": "B1",
+    "topic": "Job Interview Prep",
+    "scenario": "Practicing answering standard German interview questions.",
+    "grammarFocus": ["expressing strengths using past achievements in Perfekt/Präteritum"],
+    "vocabularyTheme": "job interviews",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 104,
+    "level": "B1",
+    "topic": "Work-Life Balance",
+    "scenario": "Discussing how to reduce overtime hours and spend time with family.",
+    "grammarFocus": ["infinitives with 'um... zu...' for purpose clauses"],
+    "vocabularyTheme": "stress reduction",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 105,
+    "level": "B1",
+    "topic": "Education: Ausbildung vs Studium",
+    "scenario": "Comparing the dual vocational training (Ausbildung) with university study.",
+    "grammarFocus": ["comparatives and superlatives in adjective declension (ein besserer Weg)"],
+    "vocabularyTheme": "higher education",
+    "telcSkill": "reading"
+  },
+  {
+    "day": 106,
+    "level": "B1",
+    "topic": "Lifelong Learning",
+    "scenario": "Giving your opinion on adult education classes (Volkshochschule).",
+    "grammarFocus": ["infinitives with 'ohne... zu...' and 'anstatt... zu...'"],
+    "vocabularyTheme": "lifelong learning",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 107,
+    "level": "B1",
+    "topic": "Housing Market Issues",
+    "scenario": "Discussing high rent prices and scarcity of living space in German cities.",
+    "grammarFocus": ["relative clauses with prepositions ('die Wohnung, in der ich wohne')"],
+    "vocabularyTheme": "housing crisis",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 108,
+    "level": "B1",
+    "topic": "WG Living Wohngemeinschaft",
+    "scenario": "Discussing the pros and cons of sharing a flat with strangers.",
+    "grammarFocus": ["two-part connectors ('sowohl... als auch...', 'weder... noch...')"],
+    "vocabularyTheme": "shared flats",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 109,
+    "level": "B1",
+    "topic": "Volunteering in Germany",
+    "scenario": "Explaining the concept of honorary posts (Ehrenamt) and why they matter.",
+    "grammarFocus": ["reflexive verbs in dative ('ich stelle mir vor', 'ich kaufe mir')"],
+    "vocabularyTheme": "civic engagement",
+    "telcSkill": "reading"
+  },
+  {
+    "day": 110,
+    "level": "B1",
+    "topic": "Eco-Mobility Debate",
+    "scenario": "Discussing whether cities should ban cars from downtown areas.",
+    "grammarFocus": ["Konjunktiv II for hypothetical scenarios ('Wenn ich Bürgermeister wäre...')"],
+    "vocabularyTheme": "eco transport",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 111,
+    "level": "B1",
+    "topic": "Organic Food vs Cheap Food",
+    "scenario": "Arguing if bio-labeled food is actually worth the higher prices.",
+    "grammarFocus": ["indirect speech basics using Konjunktiv I / present indicator tags"],
+    "vocabularyTheme": "bio groceries",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 112,
+    "level": "B1",
+    "topic": "Dealing with Authorities",
+    "scenario": "Visiting the immigration office (Ausländerbehörde) to renew a permit.",
+    "grammarFocus": ["formal terminology", "passive voice with modal verbs ('muss verlängert werden')"],
+    "vocabularyTheme": "public administration",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 113,
+    "level": "B1",
+    "topic": "Filling Registration Forms",
+    "scenario": "Reading instructions to fill in a residency registration form (Anmeldung).",
+    "grammarFocus": ["participle adjectives (die ausgefüllten Formulare)"],
+    "vocabularyTheme": "official documents",
+    "telcSkill": "reading"
+  },
+  {
+    "day": 114,
+    "level": "B1",
+    "topic": "Naturalization in Germany",
+    "scenario": "Discussing the benefits and requirements for acquiring German citizenship.",
+    "grammarFocus": ["subordinate clauses review", "prepositional adverbs ('darauf', 'womit', 'wovon')"],
+    "vocabularyTheme": "citizenship",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 115,
+    "level": "B1",
+    "topic": "Consumer Rights",
+    "scenario": "Returning a faulty digital device to get a full refund.",
+    "grammarFocus": ["assertive complaining", "expressing contractual terms ('laut dem Gesetz')"],
+    "vocabularyTheme": "consumer rights",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 116,
+    "level": "B1",
+    "topic": "telc B1 Reading Practice",
+    "scenario": "Solving a telc-style reading matching exercise for job advertisements.",
+    "grammarFocus": ["skimming and scanning texts", "identifying synonyms"],
+    "vocabularyTheme": "reading techniques",
+    "telcSkill": "reading"
+  },
+  {
+    "day": 117,
+    "level": "B1",
+    "topic": "telc B1 Listening Practice",
+    "scenario": "Solving a telc-style listening multiple-choice drill regarding news segments.",
+    "grammarFocus": ["tracking negations in rapid speech", "catching keyword markers"],
+    "vocabularyTheme": "listening techniques",
+    "telcSkill": "listening"
+  },
+  {
+    "day": 118,
+    "level": "B1",
+    "topic": "Mock Exam Speaking Simulation",
+    "scenario": "Simulating all three parts of the speaking exam under time constraints.",
+    "grammarFocus": ["time fillers to maintain fluency ('Lass mich überlegen', 'Ehrlich gesagt')"],
+    "vocabularyTheme": "oral test coping",
+    "telcSkill": "speaking"
+  },
+  {
+    "day": 119,
+    "level": "B1",
+    "topic": "Mock Exam Writing Simulation",
+    "scenario": "Writing an informal response under 30 minutes following all 4 prompt guide-points.",
+    "grammarFocus": ["writing checklist: greeting, 4 points, connector variance, closing"],
+    "vocabularyTheme": "written test guidelines",
+    "telcSkill": "writing"
+  },
+  {
+    "day": 120,
+    "level": "B1",
+    "topic": "Final B1 Strategy & Focus",
+    "scenario": "Reviewing standard mistakes, keeping calm, and building self-confidence before test day.",
+    "grammarFocus": ["motivation", "active reading strategies"],
+    "vocabularyTheme": "exam confidence",
+    "telcSkill": "speaking"
+  }
+]
