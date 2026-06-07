@@ -9,6 +9,7 @@ export const VocabularyItemSchema = z.object({
   plural: z.string().nullable().optional(),
   english: z.string().min(1, "English meaning cannot be empty"),
   exampleGerman: z.string().min(1, "German example sentence cannot be empty"),
+  exampleEnglish: z.string().min(1, "English translation of the example sentence cannot be empty"),
 });
 
 // Validator for grammar examples
@@ -17,10 +18,17 @@ export const GrammarExampleSchema = z.object({
   english: z.string().min(1, "English translation cannot be empty"),
 });
 
+// Validator for the closing story block
+export const ClosingStorySchema = z.object({
+  storyGerman: z.string().min(1, "Closing story German text cannot be empty"),
+  storyEnglish: z.string().min(1, "Closing story English translation cannot be empty"),
+});
+
 // Validator for grammar focus block
 export const GrammarFocusSchema = z.object({
   title: z.string().min(1, "Grammar title cannot be empty"),
   explanationEnglish: z.string().min(1, "Grammar explanation cannot be empty"),
+  urduGrammarNote: z.string().min(1, "Urdu grammar note cannot be empty"),
   examples: z.array(GrammarExampleSchema).min(1, "At least one grammar example is required"),
 });
 
@@ -56,6 +64,7 @@ export const LessonSchema = z.object({
   telcTip: z.string().min(1, "telc exam tip is required"),
   dailyChallenge: z.string().min(1, "Daily challenge is required"),
   reviewWords: z.array(ReviewWordSchema),
+  closingStory: ClosingStorySchema,
 });
 
 export type VocabularyItem = z.infer<typeof VocabularyItemSchema>;
@@ -63,6 +72,7 @@ export type GrammarExample = z.infer<typeof GrammarExampleSchema>;
 export type GrammarFocus = z.infer<typeof GrammarFocusSchema>;
 export type Exercise = z.infer<typeof ExerciseSchema>;
 export type ReviewWord = z.infer<typeof ReviewWordSchema>;
+export type ClosingStory = z.infer<typeof ClosingStorySchema>;
 export type Lesson = z.infer<typeof LessonSchema>;
 
 /**

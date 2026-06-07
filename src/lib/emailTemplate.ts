@@ -16,6 +16,7 @@ export function generateHtmlEmail(lesson: Lesson): string {
         <td style="padding: 10px; color: #475569; font-style: italic;">${item.plural || "—"}</td>
         <td style="padding: 10px; color: #334155;">${item.english}</td>
         <td style="padding: 10px; color: #0f172a; font-size: 14px; line-height: 1.4;">${item.exampleGerman}</td>
+        <td style="padding: 10px; color: #64748b; font-size: 13px; font-style: italic; line-height: 1.4;">${item.exampleEnglish}</td>
       </tr>
     `
     )
@@ -153,7 +154,8 @@ export function generateHtmlEmail(lesson: Lesson): string {
                       <th style="padding: 12px 10px; color: #475569; font-weight: 700; text-align: center;">Artikel</th>
                       <th style="padding: 12px 10px; color: #475569; font-weight: 700;">Plural</th>
                       <th style="padding: 12px 10px; color: #475569; font-weight: 700;">English</th>
-                      <th style="padding: 12px 10px; color: #475569; font-weight: 700; width: 40%;">Beispiel</th>
+                      <th style="padding: 12px 10px; color: #475569; font-weight: 700; width: 32%;">Beispiel (DE)</th>
+                      <th style="padding: 12px 10px; color: #475569; font-weight: 700; width: 28%;">Beispiel (EN)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -168,6 +170,12 @@ export function generateHtmlEmail(lesson: Lesson): string {
                 <p style="font-size: 15px; line-height: 1.6; color: #451a03; margin-top: 10px;">
                   ${lesson.grammarFocus.explanationEnglish}
                 </p>
+                <!-- Urdu Grammar Bridge -->
+                <div style="background-color: #fffbeb; border: 1px solid #fcd34d; border-radius: 6px; padding: 12px 15px; margin: 12px 0;">
+                  <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #78350f;">
+                    <strong style="color: #92400e;">🇵🇰 Urdu Speaker's Note:</strong> ${lesson.grammarFocus.urduGrammarNote}
+                  </p>
+                </div>
                 <h4 style="margin-bottom: 5px; color: #78350f; font-size: 14px;">Examples:</h4>
                 <ul style="margin: 0; padding-left: 20px; color: #451a03;">
                   ${grammarExamples}
@@ -195,6 +203,25 @@ export function generateHtmlEmail(lesson: Lesson): string {
                   ${lesson.dailyChallenge}
                 </p>
               </div>
+
+              <!-- Closing Story Section -->
+              ${(() => {
+                const closingStoryDE = lesson.closingStory.storyGerman.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #1e40af; background-color: #eff6ff; padding: 1px 3px; border-radius: 3px;">$1</strong>');
+                const closingStoryEN = lesson.closingStory.storyEnglish.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #166534; background-color: #f0fdf4; padding: 1px 3px; border-radius: 3px;">$1</strong>');
+                return `
+                <div style="background-color: #f9fafb; border: 1px solid #d1d5db; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+                  <h2 style="color: #1e293b; margin-top: 0; font-size: 18px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">📖 Abschlussgeschichte (Closing Story)</h2>
+                  <div style="margin-bottom: 16px;">
+                    <h4 style="margin: 0 0 8px 0; color: #1e40af; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">🇩🇪 Auf Deutsch</h4>
+                    <div style="font-size: 15px; line-height: 1.8; color: #1e293b; white-space: pre-line;">${closingStoryDE}</div>
+                  </div>
+                  <div style="border-top: 1px dashed #e5e7eb; padding-top: 14px;">
+                    <h4 style="margin: 0 0 8px 0; color: #166534; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">🇬🇧 In English</h4>
+                    <div style="font-size: 14px; line-height: 1.7; color: #334155; font-style: italic; white-space: pre-line;">${closingStoryEN}</div>
+                  </div>
+                </div>
+                `;
+              })()}
 
               <!-- Solutions Toggle/Answers Section -->
               <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; margin-bottom: 15px;">
@@ -236,7 +263,7 @@ export function generateTextEmail(lesson: Lesson): string {
   const vocabText = lesson.vocabulary
     .map(
       (v, i) =>
-        `${i + 1}. ${v.german} (${v.article}) ${v.plural ? "Plural: " + v.plural : ""}\n   English: ${v.english}\n   Beispiel: ${v.exampleGerman}`
+        `${i + 1}. ${v.german} (${v.article}) ${v.plural ? "Plural: " + v.plural : ""}\n   English: ${v.english}\n   Beispiel (DE): ${v.exampleGerman}\n   Beispiel (EN): ${v.exampleEnglish}`
     )
     .join("\n\n");
 
@@ -293,6 +320,9 @@ ${vocabText}
 -----------------------------------------
 ${lesson.grammarFocus.explanationEnglish}
 
+🇵🇰 Urdu Speaker's Note:
+${lesson.grammarFocus.urduGrammarNote}
+
 Examples:
 ${grammarExamples}
 
@@ -310,6 +340,15 @@ ${lesson.telcTip}
 🔥 TAGES-CHALLENGE (HOMEWORK):
 -----------------------------------------
 ${lesson.dailyChallenge}
+
+-----------------------------------------
+📖 ABSCHLUSSGESCHICHTE (CLOSING STORY):
+-----------------------------------------
+🇩🇪 Auf Deutsch:
+${lesson.closingStory.storyGerman.replace(/\*\*/g, "")}
+
+🇬🇧 In English:
+${lesson.closingStory.storyEnglish.replace(/\*\*/g, "")}
 
 -----------------------------------------
 ✅ LÖSUNGEN (ANSWERS):

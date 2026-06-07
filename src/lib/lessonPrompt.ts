@@ -33,9 +33,22 @@ Follow these strict rules for grammar, syntax, and pedagogical pacing:
 
 Vocabulary Rules:
 - You must generate between 10 and 18 vocabulary items based closely on today's story/text.
-- Every vocabulary item must be structured as a JSON object containing: "german", "article", "plural", "english", "exampleGerman".
+- Every vocabulary item must be structured as a JSON object containing: "german", "article", "plural", "english", "exampleGerman", "exampleEnglish".
 - GENDER/ARTICLE RULE: Nouns must use one of "der", "die", or "das" in their "article" field. For non-nouns (verbs, adjectives, adverbs, prepositions, etc.), you must set the article strictly to "—" (an em-dash character).
 - "plural" must contain the plural form of the noun (with article, e.g., "die Supermärkte"). For non-nouns, set it to "" or null.
+- "exampleGerman" must be a natural, complete German sentence using the word.
+- "exampleEnglish" must be the exact English translation of that example sentence (word-for-word, not paraphrased).
+
+Urdu Grammar Notes Rule:
+- Inside the "grammarFocus" object, include a "urduGrammarNote" field.
+- Write 2–3 sentences in English explaining how this German grammar concept compares to Urdu (Nastaliq speakers). Reference specific Urdu grammatical terms where applicable (e.g., izafat, postpositions vs. prepositions, SOV word order, verb-final placement, case marking via postpositions like کو / نے, etc.).
+- This note is specifically to help an Urdu-native speaker build a mental bridge to German grammar.
+
+Closing Story Rules:
+- At the end of the lesson, include a "closingStory" object with two fields: "storyGerman" and "storyEnglish".
+- "storyGerman": Write a short, vivid story (5–8 sentences) in German that naturally uses many of today's vocabulary words. Bold all key vocabulary from today's lesson using **word** markdown syntax.
+- "storyEnglish": Provide the exact English translation of the closing story, also bolding the translated vocabulary words using **word** markdown syntax.
+- The story should be engaging, set in a realistic German-speaking context, and appropriate for the day's CEFR level.
 
 Spaced Repetition Review Rules:
 - The "reviewWords" array must contain exactly the 5 words provided in the prompt.
@@ -45,6 +58,7 @@ Exercise Rules:
 - Provide 3 to 5 short exercises.
 - Exercise types can be: "fill_blank", "translation", "multiple_choice", "word_order", or "question_answer".
 - Include clear question and correct answer keys. Always place answers at the bottom of the JSON so they can be parsed.`;
+
 
   const reviewWordsContext = args.reviewWords.length > 0
     ? args.reviewWords.map(w => `- ${w.german} (${w.article}): ${w.english}`).join("\n")
@@ -77,11 +91,13 @@ interface Response {
     article: "der" | "die" | "das" | "—"; // Nouns MUST be "der", "die", or "das". Verbs/others MUST be "—".
     plural: string; // E.g., "die Supermärkte" for nouns, or "" for non-nouns
     english: string; // English meaning
-    exampleGerman: string; // Example sentence using this term
+    exampleGerman: string; // A complete, natural German sentence using this term
+    exampleEnglish: string; // Exact English translation of exampleGerman (word-for-word)
   }>;
   grammarFocus: {
     title: string;
     explanationEnglish: string; // Simple, practical explanation in English
+    urduGrammarNote: string; // 2-3 sentences in English comparing this German grammar rule to Urdu grammar (postpositions, SOV order, verb-final, case markers like کو/نے, etc.) to help an Urdu-native speaker understand the concept
     examples: Array<{
       german: string;
       english: string;
@@ -99,6 +115,10 @@ interface Response {
     article: "der" | "die" | "das" | "—";
     english: string;
   }>;
+  closingStory: {
+    storyGerman: string; // 5-8 sentence story in German using today's vocabulary. Bold key words with **word**.
+    storyEnglish: string; // Exact English translation of storyGerman. Bold translated key words with **word**.
+  };
 }
 
 Remember: Return strict JSON only. Do not wrap in markdown \`\`\` json blocks.`;

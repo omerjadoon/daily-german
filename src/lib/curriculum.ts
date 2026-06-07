@@ -1,5 +1,4 @@
-import fs from "fs";
-import path from "path";
+import curriculumData from "../data/curriculum.json";
 import { Lesson, ReviewWord } from "./validation";
 
 export interface CurriculumTopic {
@@ -12,27 +11,14 @@ export interface CurriculumTopic {
   telcSkill: string | null;
 }
 
-// Global cached topics to avoid repeated reading from fs in serverless context
-let cachedTopics: CurriculumTopic[] | null = null;
-
 /**
- * Loads the curriculum JSON from local data files safely
+ * Returns the bundled curriculum topics (imported at build time).
+ * This approach works correctly in Netlify serverless functions,
+ * unlike fs.readFileSync which fails because process.cwd() is not
+ * the project root in the Lambda runtime environment.
  */
 export function getCurriculumTopics(): CurriculumTopic[] {
-  if (cachedTopics) return cachedTopics;
-
-  try {
-    const filePath = path.resolve(process.cwd(), "src/data/curriculum.json");
-    if (fs.existsSync(filePath)) {
-      const data = fs.readFileSync(filePath, "utf-8");
-      cachedTopics = JSON.parse(data);
-      return cachedTopics || [];
-    }
-  } catch (error) {
-    console.error("Failed to load curriculum.json from file system:", error);
-  }
-  
-  return [];
+  return curriculumData as CurriculumTopic[];
 }
 
 /**
@@ -93,6 +79,7 @@ export function generateFallbackLesson(
         plural: "",
         english: "to learn",
         exampleGerman: "Ich lerne jeden Tag Deutsch.",
+        exampleEnglish: "I learn German every day.",
       },
       {
         german: "Leben",
@@ -100,6 +87,7 @@ export function generateFallbackLesson(
         plural: "die Leben",
         english: "life",
         exampleGerman: "Das Leben in Deutschland ist aufregend.",
+        exampleEnglish: "Life in Germany is exciting.",
       },
       {
         german: "Thema",
@@ -107,6 +95,7 @@ export function generateFallbackLesson(
         plural: "die Themen",
         english: "topic",
         exampleGerman: "Das Thema heute ist sehr nützlich.",
+        exampleEnglish: "Today's topic is very useful.",
       },
       {
         german: "Situation",
@@ -114,6 +103,7 @@ export function generateFallbackLesson(
         plural: "die Situationen",
         english: "situation",
         exampleGerman: "Wir üben für diese schwierige Situation.",
+        exampleEnglish: "We are practising for this difficult situation.",
       },
       {
         german: "Fortschritt",
@@ -121,6 +111,7 @@ export function generateFallbackLesson(
         plural: "die Fortschritte",
         english: "progress",
         exampleGerman: "Ich mache jeden Tag gute Fortschritte.",
+        exampleEnglish: "I make good progress every day.",
       },
       {
         german: "Spaß",
@@ -128,6 +119,7 @@ export function generateFallbackLesson(
         plural: "",
         english: "fun",
         exampleGerman: "Deutsch lernen macht mir großen Spaß.",
+        exampleEnglish: "Learning German is a lot of fun for me.",
       },
       {
         german: "täglich",
@@ -135,6 +127,7 @@ export function generateFallbackLesson(
         plural: "",
         english: "daily",
         exampleGerman: "Das ist meine tägliche Übung.",
+        exampleEnglish: "This is my daily exercise.",
       },
       {
         german: "gemeinsam",
@@ -142,6 +135,7 @@ export function generateFallbackLesson(
         plural: "",
         english: "together",
         exampleGerman: "Wir lernen heute gemeinsam Deutsch.",
+        exampleEnglish: "We are learning German together today.",
       },
       {
         german: "jeden Tag",
@@ -149,6 +143,7 @@ export function generateFallbackLesson(
         plural: "",
         english: "every day",
         exampleGerman: "Er lernt jeden Tag neue Wörter.",
+        exampleEnglish: "He learns new words every day.",
       },
       {
         german: "wichtig",
@@ -156,11 +151,13 @@ export function generateFallbackLesson(
         plural: "",
         english: "important",
         exampleGerman: "Es ist wichtig, die Artikel zu kennen.",
+        exampleEnglish: "It is important to know the articles.",
       },
     ],
     grammarFocus: {
       title: "Verbs and Word Order in Main Clauses",
-      explanationEnglish: "In a standard German statement (main clause), the conjugated verb always sits in the second position of the sentence.",
+      explanationEnglish: "In a standard German statement (main clause), the conjugated verb always sits in the second position of the sentence. If you move another element (like a time word) to the front, the subject shifts to position 3 — but the verb stays locked at position 2.",
+      urduGrammarNote: "In Urdu, the verb almost always comes at the very end of the sentence (Subject-Object-Verb order), e.g., 'میں آج جرمن سیکھتا ہوں' (I today German learn). German, however, is verb-second (V2): the verb must sit in the 2nd slot regardless of what starts the sentence. Think of it as German 'anchoring' the verb earlier than Urdu does. This is one of the biggest structural differences you will need to consciously practise.",
       examples: [
         {
           german: "Ich lerne heute Deutsch.",
@@ -192,5 +189,9 @@ export function generateFallbackLesson(
     telcTip: "telc Speaking Tip: Keep your sentences clear and structured. Standard SVO structures are highly rated if grammatically correct.",
     dailyChallenge: "Write three simple sentences in German about what you did today and identify the position of your verbs.",
     reviewWords: reviewWords,
+    closingStory: {
+      storyGerman: `**Heute** lernen wir gemeinsam über ein wichtiges **Thema**.\n\nDas **Leben** in Deutschland bietet viele interessante **Situationen**.\n\nJeden **Tag** machen wir kleine Fortschritte — und das ist sehr **wichtig**.\n\nDeutsch lernen macht **Spaß**, wenn man **gemeinsam** übt.\n\nMit **täglicher** Übung kommen die Fortschritte von selbst!`,
+      storyEnglish: `**Today** we are learning together about an important **topic**.\n\n**Life** in Germany offers many interesting **situations**.\n\n**Every day** we make small steps of progress — and that is very **important**.\n\nLearning German is **fun** when you practise **together**.\n\nWith **daily** practice, progress comes on its own!`,
+    },
   };
 }
