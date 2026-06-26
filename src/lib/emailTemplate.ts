@@ -1,5 +1,16 @@
 import { Lesson } from "./validation";
 
+// Category badge colors for Tips & Tricks
+const CATEGORY_STYLES: Record<string, { bg: string; color: string; label: string }> = {
+  memory:    { bg: "#eff6ff", color: "#1d4ed8", label: "💡 Memory" },
+  grammar:   { bg: "#fdf5e6", color: "#b45309", label: "📐 Grammar" },
+  speaking:  { bg: "#f0fdf4", color: "#166534", label: "🎙️ Speaking" },
+  writing:   { bg: "#faf5ff", color: "#6b21a8", label: "✍️ Writing" },
+  listening: { bg: "#fff7ed", color: "#c2410c", label: "👂 Listening" },
+  exam:      { bg: "#f0f9ff", color: "#0369a1", label: "🏆 Exam" },
+  culture:   { bg: "#fdf2f8", color: "#9d174d", label: "🌍 Culture" },
+};
+
 /**
  * Renders the daily German lesson in a premium, responsive HTML template.
  */
@@ -146,7 +157,7 @@ export function generateHtmlEmail(lesson: Lesson): string {
 
               <!-- Vocabulary Section -->
               <h2 style="color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-size: 20px; margin-bottom: 15px;">📊 Wortschatz (Vocabulary)</h2>
-              <div style="overflow-x: auto; margin-bottom: 25px; border: 1px solid #e2e8f0; border-radius: 8px;">
+              <div style="overflow-x: auto; margin-bottom: 10px; border: 1px solid #e2e8f0; border-radius: 8px;">
                 <table style="width: 100%; border-collapse: collapse; font-size: 14px; text-align: left; background-color: #ffffff;">
                   <thead>
                     <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
@@ -163,6 +174,32 @@ export function generateHtmlEmail(lesson: Lesson): string {
                   </tbody>
                 </table>
               </div>
+
+              <!-- Per-Word Pronunciation Guide -->
+              ${lesson.pronunciationGuide && lesson.pronunciationGuide.length > 0 ? `
+              <div style="overflow-x: auto; margin-bottom: 25px; border: 1px solid #ddd6fe; border-radius: 8px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; background-color: #faf5ff;">
+                  <thead>
+                    <tr style="background-color: #ede9fe; border-bottom: 2px solid #c4b5fd;">
+                      <th style="padding: 10px; color: #5b21b6; font-weight: 700;">Word</th>
+                      <th style="padding: 10px; color: #5b21b6; font-weight: 700;">Phonetic</th>
+                      <th style="padding: 10px; color: #5b21b6; font-weight: 700; width: 38%;">Sound Tip</th>
+                      <th style="padding: 10px; color: #5b21b6; font-weight: 700; width: 28%;">🇵🇰 Urdu Approximation</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${lesson.pronunciationGuide.map((p) => `
+                    <tr style="border-bottom: 1px solid #e9d5ff;">
+                      <td style="padding: 9px 10px; font-weight: 700; color: #1e293b;">${p.german}</td>
+                      <td style="padding: 9px 10px; font-family: monospace; color: #6d28d9; font-weight: 600; white-space: nowrap;">${p.phonetic}</td>
+                      <td style="padding: 9px 10px; color: #374151; line-height: 1.5;">${p.soundTip}</td>
+                      <td style="padding: 9px 10px; color: #6d28d9; font-style: italic; line-height: 1.5;">${p.urduApproximation || '—'}</td>
+                    </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+              ` : '<div style="margin-bottom: 25px;"></div>'}
 
               <!-- Grammar Focus Section -->
               <div style="background-color: #fdf5e6; border: 1px solid #f5deb3; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
@@ -230,6 +267,51 @@ export function generateHtmlEmail(lesson: Lesson): string {
                   ${answerList}
                 </div>
               </div>
+
+              <!-- Tips & Tricks Section -->
+              ${lesson.tipsAndTricks && lesson.tipsAndTricks.length > 0 ? `
+              <div style="margin-bottom: 25px;">
+                <h2 style="color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-size: 20px; margin-bottom: 16px;">🧠 Lerntipps & Tricks (Learning Tips & Tricks)</h2>
+                ${lesson.tipsAndTricks.map((tip) => {
+                  const style = CATEGORY_STYLES[tip.category || 'memory'] || CATEGORY_STYLES['memory'];
+                  return `
+                  <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 12px; background-color: #fafafa; border-left: 4px solid ${style.color};">
+                    <div style="display: flex; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                      <span style="background-color: ${style.bg}; color: ${style.color}; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; white-space: nowrap;">${style.label}</span>
+                      <strong style="color: #1e293b; font-size: 15px;">${tip.title}</strong>
+                    </div>
+                    <p style="margin: 0; font-size: 14px; line-height: 1.7; color: #334155;">${tip.tip}</p>
+                  </div>
+                  `;
+                }).join('')}
+              </div>
+              ` : ''}
+
+              <!-- Pronunciation Section -->
+              ${lesson.pronunciationSection ? `
+              <div style="background-color: #f5f3ff; border: 1px solid #c4b5fd; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+                <h2 style="color: #5b21b6; margin-top: 0; font-size: 18px; border-bottom: 1px solid #c4b5fd; padding-bottom: 8px;">🗣️ Aussprache-Fokus (Pronunciation Focus)</h2>
+                <p style="font-size: 14px; color: #3b0764; line-height: 1.6; margin-top: 10px;">${lesson.pronunciationSection.focusSounds}</p>
+                ${lesson.pronunciationSection.rules.map((rule) => `
+                <div style="background-color: #ede9fe; border-radius: 6px; padding: 12px 15px; margin-bottom: 10px;">
+                  <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+                    <span style="font-size: 18px; font-weight: 800; color: #6d28d9; font-family: monospace; background-color: #ddd6fe; padding: 2px 10px; border-radius: 6px;">${rule.sound}</span>
+                    <span style="font-size: 13px; color: #4c1d95; line-height: 1.6;">${rule.description}</span>
+                  </div>
+                  <div style="margin-top: 8px;">
+                    <span style="font-size: 12px; color: #6d28d9; font-weight: 600;">Examples: </span>
+                    ${rule.examples.map(ex => `<span style="background-color: #fff; border: 1px solid #c4b5fd; border-radius: 4px; padding: 1px 8px; font-size: 13px; color: #1e293b; margin-right: 4px; display: inline-block;">${ex}</span>`).join('')}
+                  </div>
+                  ${rule.urduNote ? `<p style="margin: 8px 0 0 0; font-size: 12px; color: #7c3aed; background-color: #fef9c3; padding: 4px 10px; border-radius: 4px; display: inline-block;">🇵🇰 ${rule.urduNote}</p>` : ''}
+                </div>
+                `).join('')}
+                <div style="background-color: #ddd6fe; border-radius: 6px; padding: 14px; margin-top: 14px;">
+                  <p style="margin: 0 0 4px 0; font-size: 13px; font-weight: 700; color: #4c1d95;">🔁 Practice Phrase:</p>
+                  <p style="margin: 0; font-size: 16px; color: #2e1065; font-weight: 600; letter-spacing: 0.02em;">${lesson.pronunciationSection.practicePhrase}</p>
+                  <p style="margin: 6px 0 0 0; font-size: 13px; color: #5b21b6; font-style: italic;">${lesson.pronunciationSection.practicePhraseTranslation}</p>
+                </div>
+              </div>
+              ` : ''}
 
             </td>
           </tr>
@@ -314,6 +396,13 @@ ${lesson.translationEnglish}
 📊 WORTSCHATZ (VOCABULARY):
 -----------------------------------------
 ${vocabText}
+${lesson.pronunciationGuide && lesson.pronunciationGuide.length > 0 ? `
+-----------------------------------------
+🗣️ AUSSPRACHE-GUIDE (PRONUNCIATION):
+-----------------------------------------
+${lesson.pronunciationGuide.map((p) =>
+  `▶ ${p.german}\n  Phonetic: ${p.phonetic}\n  Tip: ${p.soundTip}\n  🇵🇰 Urdu: ${p.urduApproximation || '—'}`
+).join('\n\n')}` : ''}
 
 -----------------------------------------
 💡 GRAMMATIK-FOKUS: ${lesson.grammarFocus.title}
@@ -354,6 +443,25 @@ ${lesson.closingStory.storyEnglish.replace(/\*\*/g, "")}
 ✅ LÖSUNGEN (ANSWERS):
 -----------------------------------------
 ${answersText}
+${lesson.tipsAndTricks && lesson.tipsAndTricks.length > 0 ? `
+-----------------------------------------
+🧠 LERNTIPPS & TRICKS:
+-----------------------------------------
+${lesson.tipsAndTricks.map((t, i) =>
+  `${i + 1}. [${(t.category || 'tip').toUpperCase()}] ${t.title}\n   ${t.tip}`
+).join('\n\n')}` : ''}
+${lesson.pronunciationSection ? `
+-----------------------------------------
+🗣️ AUSSPRACHE-FOKUS (PRONUNCIATION FOCUS):
+-----------------------------------------
+${lesson.pronunciationSection.focusSounds}
+
+${lesson.pronunciationSection.rules.map((r) =>
+  `Sound: ${r.sound}\n${r.description}\nExamples: ${r.examples.join(', ')}${r.urduNote ? '\n🇵🇰 ' + r.urduNote : ''}`
+).join('\n\n')}
+
+🔁 Practice Phrase: ${lesson.pronunciationSection.practicePhrase}
+(${lesson.pronunciationSection.practicePhraseTranslation})` : ''}
 
 -----------------------------------------
 Daily German B1 Tutor

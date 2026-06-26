@@ -1,5 +1,5 @@
 import { DifficultyProfile } from "./progression";
-import { ReviewWord } from "./validation";
+import { ReviewWord, VocabularyItem } from "./validation";
 
 interface PromptArguments {
   dayNumber: number;
@@ -11,6 +11,13 @@ interface PromptArguments {
   telcSkill: string | null;
   profile: DifficultyProfile;
   reviewWords: ReviewWord[];
+}
+
+interface EnrichmentPromptArguments {
+  dayNumber: number;
+  level: string;
+  topic: string;
+  vocabulary: VocabularyItem[];
 }
 
 /**
@@ -44,11 +51,24 @@ Urdu Grammar Notes Rule:
 - Write 2–3 sentences in English explaining how this German grammar concept compares to Urdu (Nastaliq speakers). Reference specific Urdu grammatical terms where applicable (e.g., izafat, postpositions vs. prepositions, SOV word order, verb-final placement, case marking via postpositions like کو / نے, etc.).
 - This note is specifically to help an Urdu-native speaker build a mental bridge to German grammar.
 
+Opening Story Rules:
+- "storyGerman" must be a substantial, engaging story or realistic dialogue (10–14 sentences) — not a short paragraph. It should paint a vivid scene, include character interaction, and naturally weave in today's vocabulary. Bold all key vocabulary from today's lesson using **word** markdown syntax.
+- "translationEnglish" must be the exact line-by-line English translation of storyGerman.
+
 Closing Story Rules:
 - At the end of the lesson, include a "closingStory" object with two fields: "storyGerman" and "storyEnglish".
-- "storyGerman": Write a short, vivid story (5–8 sentences) in German that naturally uses many of today's vocabulary words. Bold all key vocabulary from today's lesson using **word** markdown syntax.
+- "storyGerman": Write a rich, immersive story (8–12 sentences) in German that naturally uses many of today's vocabulary words. The story should be different from the opening story — different scene, different characters. Bold all key vocabulary using **word** markdown syntax.
 - "storyEnglish": Provide the exact English translation of the closing story, also bolding the translated vocabulary words using **word** markdown syntax.
 - The story should be engaging, set in a realistic German-speaking context, and appropriate for the day's CEFR level.
+
+Grammar Explanation Rules:
+- "explanationEnglish" must be at least 3–5 sentences. Explain the rule clearly, give context for when it is used, and mention common mistakes to avoid.
+
+telc Tip Rules:
+- "telcTip" must be at least 3–4 sentences covering a concrete, actionable strategy for the exam (not just a single generic sentence).
+
+Daily Challenge Rules:
+- "dailyChallenge" must describe a specific, multi-step task the learner can do today (e.g. write 3 sentences, record yourself, or find and translate a paragraph). At least 2–3 sentences.
 
 Spaced Repetition Review Rules:
 - The "reviewWords" array must contain exactly the 5 words provided in the prompt.
@@ -108,16 +128,72 @@ interface Response {
     question: string;
     answer: string; // Correct answer
   }>;
-  telcTip: string; // A brief exam tip (reading, writing, speaking, or listening) related to B1
-  dailyChallenge: string; // A practical mini homework challenge (e.g. "Say this out loud 5 times")
+  telcTip: string; // 3-4 sentence concrete exam strategy tip related to B1 (reading, writing, speaking, or listening)
+  dailyChallenge: string; // A specific, multi-step practical homework challenge (2-3 sentences describing what to do)
   reviewWords: Array<{
     german: string;
     article: "der" | "die" | "das" | "—";
     english: string;
   }>;
   closingStory: {
-    storyGerman: string; // 5-8 sentence story in German using today's vocabulary. Bold key words with **word**.
+    storyGerman: string; // 8-12 sentence story in German using today's vocabulary. Bold key words with **word**.
     storyEnglish: string; // Exact English translation of storyGerman. Bold translated key words with **word**.
+  };
+}
+
+Remember: Return strict JSON only. Do not wrap in markdown \`\`\` json blocks.`;
+
+  return { systemPrompt, userPrompt };
+}
+
+/**
+ * Builds the system and user prompts for the second, enrichment-focused LLM call.
+ * This generates: tipsAndTricks, pronunciationGuide (per vocab word), and pronunciationSection.
+ */
+export function buildEnrichmentPrompt(args: EnrichmentPromptArguments) {
+  const vocabList = args.vocabulary
+    .map((v) => `- ${v.german} (${v.article !== "—" ? v.article + " " : ""}${v.english})`)
+    .join("\n");
+
+  const systemPrompt = `You are an expert German pronunciation coach and pedagogy specialist helping an English/Urdu-speaking adult prepare for the telc Deutsch B1 exam.
+Your job is to generate a JSON enrichment object for today's German lesson. Focus on pronunciation accuracy, memorable learning tips, and Urdu speaker insights.
+Return ONLY a valid JSON object — no markdown, no extra text, no code blocks.`;
+
+  const userPrompt = `Generate pronunciation and learning enrichment for this German B1 lesson.
+
+Day: ${args.dayNumber}
+Level: ${args.level}
+Topic: ${args.topic}
+
+Today's vocabulary:
+${vocabList}
+
+Return a single JSON object with this exact shape:
+
+interface Enrichment {
+  tipsAndTricks: Array<{
+    title: string;           // Short title for the tip (e.g. "Der/Die/Das Trick")
+    tip: string;             // Detailed explanation — at least 3–4 sentences. Be concrete and specific.
+    category: "memory" | "grammar" | "speaking" | "writing" | "listening" | "exam" | "culture";
+  }>; // Provide 5 to 7 tips covering different categories
+
+  pronunciationGuide: Array<{
+    german: string;              // The German word (must match one of today's vocab words above)
+    phonetic: string;            // IPA or simple phonetic approximation (e.g. "ZOO-per-markt")
+    soundTip: string;            // 2-3 sentences: explain the tricky sounds, mouth position, common mistakes
+    urduApproximation: string;   // How an Urdu speaker can approximate this using Urdu sounds (e.g. "Like saying 'سوپر مارکٹ' but with a short 'oo'")
+  }>; // Provide a guide entry for EVERY vocabulary word above
+
+  pronunciationSection: {
+    focusSounds: string;         // 1-2 sentences: which German sounds appear most in today's lesson
+    rules: Array<{
+      sound: string;             // The German letter(s) or combination (e.g. "ch", "ü", "ei", "ß")
+      description: string;       // 2-3 sentences explaining how to produce this sound
+      examples: string[];        // 2-4 example words containing this sound
+      urduNote: string;          // How an Urdu speaker should think about this sound
+    }>; // At least 3 rules based on sounds in today's vocabulary
+    practicePhrase: string;      // A German tongue-twister or practice phrase featuring today's sounds
+    practicePhraseTranslation: string; // English translation of the practice phrase
   };
 }
 

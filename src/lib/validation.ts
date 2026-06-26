@@ -12,6 +12,34 @@ export const VocabularyItemSchema = z.object({
   exampleEnglish: z.string().min(1, "English translation of the example sentence cannot be empty"),
 });
 
+// Validator for a pronunciation guide entry (one per vocab word)
+export const PronunciationGuideItemSchema = z.object({
+  german: z.string().min(1, "German word cannot be empty"),
+  phonetic: z.string().min(1, "Phonetic representation cannot be empty"),
+  soundTip: z.string().min(1, "Sound tip cannot be empty"),
+  urduApproximation: z.string().optional(), // How an Urdu speaker might approximate the sound
+});
+
+// Validator for a single tip-and-trick entry
+export const TipAndTrickSchema = z.object({
+  title: z.string().min(1, "Tip title cannot be empty"),
+  tip: z.string().min(1, "Tip content cannot be empty"),
+  category: z.enum(["memory", "grammar", "speaking", "writing", "listening", "exam", "culture"]).optional(),
+});
+
+// Validator for pronunciation focus section
+export const PronunciationSectionSchema = z.object({
+  focusSounds: z.string().min(1, "Focus sounds description cannot be empty"),
+  rules: z.array(z.object({
+    sound: z.string().min(1),
+    description: z.string().min(1),
+    examples: z.array(z.string()).min(1),
+    urduNote: z.string().optional(),
+  })).min(1, "At least one pronunciation rule is required"),
+  practicePhrase: z.string().min(1, "Practice phrase cannot be empty"),
+  practicePhraseTranslation: z.string().min(1, "Practice phrase translation cannot be empty"),
+});
+
 // Validator for grammar examples
 export const GrammarExampleSchema = z.object({
   german: z.string().min(1, "German example cannot be empty"),
@@ -65,6 +93,10 @@ export const LessonSchema = z.object({
   dailyChallenge: z.string().min(1, "Daily challenge is required"),
   reviewWords: z.array(ReviewWordSchema),
   closingStory: ClosingStorySchema,
+  // Enrichment fields from second LLM call (optional so cached lessons still parse)
+  pronunciationGuide: z.array(PronunciationGuideItemSchema).optional(),
+  tipsAndTricks: z.array(TipAndTrickSchema).optional(),
+  pronunciationSection: PronunciationSectionSchema.optional(),
 });
 
 export type VocabularyItem = z.infer<typeof VocabularyItemSchema>;
@@ -73,6 +105,9 @@ export type GrammarFocus = z.infer<typeof GrammarFocusSchema>;
 export type Exercise = z.infer<typeof ExerciseSchema>;
 export type ReviewWord = z.infer<typeof ReviewWordSchema>;
 export type ClosingStory = z.infer<typeof ClosingStorySchema>;
+export type PronunciationGuideItem = z.infer<typeof PronunciationGuideItemSchema>;
+export type TipAndTrick = z.infer<typeof TipAndTrickSchema>;
+export type PronunciationSection = z.infer<typeof PronunciationSectionSchema>;
 export type Lesson = z.infer<typeof LessonSchema>;
 
 /**

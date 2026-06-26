@@ -5,7 +5,7 @@ import { getDifficultyProfile } from "./progression";
 import { getReviewWords, calculateNextReviewDate } from "./reviewWords";
 import { validateLesson, Lesson, VocabularyItem } from "./validation";
 import { generateContent } from "./groq";
-import { buildLessonPrompt } from "./lessonPrompt";
+import { buildLessonPrompt, buildEnrichmentPrompt } from "./lessonPrompt";
 import { generateHtmlEmail, generateTextEmail } from "./emailTemplate";
 import { sendTutorEmail } from "./resend";
 
@@ -192,6 +192,49 @@ Respond ONLY with a valid, clean JSON object matching the requested Lesson inter
 }
 
 /**
+ * Makes a second LLM call to generate enrichment content (tips & tricks, pronunciation guide).
+ * Merges the result into the provided lesson object. Never throws — fails silently.
+ */
+async function getEnrichmentForLesson(lesson: Lesson, dayNumber: number): Promise<Lesson> {
+  try {
+    await logEvent("enrichment_generation_started", dayNumber, "Generating pronunciation & tips enrichment via second LLM call.");
+
+    const { systemPrompt, userPrompt } = buildEnrichmentPrompt({
+      dayNumber,
+      level: lesson.level,
+      topic: lesson.topic,
+      vocabulary: lesson.vocabulary,
+    });
+
+    const enrichmentRaw = await generateContent({
+      systemPrompt,
+      userPrompt,
+      jsonMode: true,
+      temperature: 0.3,
+    });
+
+    const enrichment = JSON.parse(enrichmentRaw);
+
+    // Merge enrichment fields into the lesson
+    if (Array.isArray(enrichment.tipsAndTricks) && enrichment.tipsAndTricks.length > 0) {
+      lesson = { ...lesson, tipsAndTricks: enrichment.tipsAndTricks };
+    }
+    if (Array.isArray(enrichment.pronunciationGuide) && enrichment.pronunciationGuide.length > 0) {
+      lesson = { ...lesson, pronunciationGuide: enrichment.pronunciationGuide };
+    }
+    if (enrichment.pronunciationSection && enrichment.pronunciationSection.rules) {
+      lesson = { ...lesson, pronunciationSection: enrichment.pronunciationSection };
+    }
+
+    await logEvent("enrichment_generation_succeeded", dayNumber, "Enrichment merged into lesson successfully.");
+  } catch (err: any) {
+    await logEvent("enrichment_generation_failed", dayNumber, `Enrichment generation failed (non-fatal): ${err.message || err}`);
+  }
+
+  return lesson;
+}
+
+/**
  * Main scheduled service. Resolves today's day number, checks duplicate send logs,
  * generates/fetches lesson, sends email via Resend, and records success logs.
  */
@@ -221,7 +264,23 @@ export async function sendDailyLesson(): Promise<{ alreadySent: boolean; dayNumb
   await logEvent("email_send_started", dayNumber, `Initiating daily tutor send to ${emailTo}.`);
 
   // 2. Fetch or create lesson content
-  const lesson = await getOrGenerateLesson(dayNumber);
+  let lesson = await getOrGenerateLesson(dayNumber);
+
+  // 2a. Enrich lesson with pronunciation guide and tips (second LLM call)
+  // Only enrich if the lesson doesn't already have enrichment data (e.g., freshly generated)
+  if (!lesson.tipsAndTricks || lesson.tipsAndTricks.length === 0) {
+    lesson = await getEnrichmentForLesson(lesson, dayNumber);
+    // Persist the enriched lesson back to the database
+    try {
+      await sql`
+        UPDATE generated_lessons
+        SET lesson_json = ${JSON.stringify(lesson)}, updated_at = now()
+        WHERE day_number = ${dayNumber}
+      `;
+    } catch (dbErr) {
+      console.error("Failed to persist enriched lesson to DB:", dbErr);
+    }
+  }
 
   // 3. Render and deliver email
   try {
