@@ -20,13 +20,13 @@ export async function logEvent(
   message: string,
   metadata: any = null
 ): Promise<void> {
+  console.log(`[Event - ${eventType}] Day ${dayNumber}: ${message}`, metadata ? JSON.stringify(metadata, null, 2) : "");
   try {
     const metaJson = metadata ? JSON.stringify(metadata) : null;
     await sql`
       INSERT INTO lesson_events (event_type, day_number, message, metadata)
       VALUES (${eventType}, ${dayNumber}, ${message}, ${metaJson})
     `;
-    console.log(`[Event Logged - ${eventType}] Day ${dayNumber}: ${message}`);
   } catch (err) {
     console.error("Failed to log operational event in Supabase:", err);
   }

@@ -57,7 +57,7 @@ export const LessonSchema = z.object({
   translationEnglish: z.string().min(1, "English translation cannot be empty"),
   vocabulary: z
     .array(VocabularyItemSchema)
-    .min(10, "Vocabulary list must have at least 10 items")
+    .min(5, "Vocabulary list must have at least 5 items")
     .max(18, "Vocabulary list cannot exceed 18 items"),
   grammarFocus: GrammarFocusSchema,
   exercises: z.array(ExerciseSchema).min(3, "At least 3 exercises are required"),

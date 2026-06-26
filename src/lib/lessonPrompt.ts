@@ -32,7 +32,7 @@ Follow these strict rules for grammar, syntax, and pedagogical pacing:
 7. Forbidden/Discouraged Grammar (DO NOT USE THESE): ${args.profile.forbiddenGrammar.join(", ")}
 
 Vocabulary Rules:
-- You must generate between 10 and 18 vocabulary items based closely on today's story/text.
+- You must generate between 5 and 18 vocabulary items based closely on today's story/text.
 - Every vocabulary item must be structured as a JSON object containing: "german", "article", "plural", "english", "exampleGerman", "exampleEnglish".
 - GENDER/ARTICLE RULE: Nouns must use one of "der", "die", or "das" in their "article" field. For non-nouns (verbs, adjectives, adverbs, prepositions, etc.), you must set the article strictly to "—" (an em-dash character).
 - "plural" must contain the plural form of the noun (with article, e.g., "die Supermärkte"). For non-nouns, set it to "" or null.
