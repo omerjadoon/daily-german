@@ -12,6 +12,8 @@ build/
 
 # Netlify local folders
 .netlify/
+netlify/functions/*.zip
+netlify/functions/manifest.json
 
 # Local env files
 .env
