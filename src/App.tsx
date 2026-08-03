@@ -6,6 +6,15 @@ import { RecentLessons } from "./components/RecentLessons";
 import { RecentVocabulary } from "./components/RecentVocabulary";
 import { Lesson } from "./lib/validation";
 
+async function safeFetchJson(res: Response): Promise<any> {
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    throw new Error(`HTTP ${res.status}: ${text.slice(0, 250) || "(No response body)"}`);
+  }
+}
+
 export default function App() {
   // Config state
   const [secret, setSecret] = useState<string>(() => {
@@ -48,16 +57,10 @@ export default function App() {
     setErrorStatus(null);
     try {
       const res = await fetch("/.netlify/functions/lesson-status");
+      const data = await safeFetchJson(res);
       if (!res.ok) {
-        // Try to get error body from function
-        let detail = `HTTP ${res.status}`;
-        try {
-          const body = await res.json();
-          detail = body.details || body.error || detail;
-        } catch {}
-        throw new Error(detail);
+        throw new Error(data.details || data.error || `HTTP ${res.status}`);
       }
-      const data = await res.json();
       setStatus(data);
       setPreviewDay(data.dayNumber);
       
@@ -81,10 +84,10 @@ export default function App() {
     setErrorPreview(null);
     try {
       const res = await fetch(`/.netlify/functions/preview-lesson?day=${dayNum}`);
+      const data = await safeFetchJson(res);
       if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
+        throw new Error(data.details || data.error || `HTTP ${res.status}`);
       }
-      const data = await res.json();
       setPreviewLesson(data.lesson);
       setPreviewDay(data.dayNumber);
     } catch (err: any) {
@@ -101,7 +104,7 @@ export default function App() {
     try {
       const res = await fetch("/.netlify/functions/recent-lessons");
       if (res.ok) {
-        const data = await res.json();
+        const data = await safeFetchJson(res);
         setRecentLessons(data);
       }
     } catch (err) {
@@ -117,7 +120,7 @@ export default function App() {
     try {
       const res = await fetch("/.netlify/functions/recent-vocabulary");
       if (res.ok) {
-        const data = await res.json();
+        const data = await safeFetchJson(res);
         setRecentVocabulary(data);
       }
     } catch (err) {
@@ -137,9 +140,9 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ secret }),
       });
-      const data = await res.json();
+      const data = await safeFetchJson(res);
       if (!res.ok) {
-        throw new Error(data.error || `HTTP ${res.status}`);
+        throw new Error(data.details || data.error || `HTTP ${res.status}`);
       }
       
       if (data.alreadySent) {
@@ -168,9 +171,9 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ secret, day: dayNum }),
       });
-      const data = await res.json();
+      const data = await safeFetchJson(res);
       if (!res.ok) {
-        throw new Error(data.error || `HTTP ${res.status}`);
+        throw new Error(data.details || data.error || `HTTP ${res.status}`);
       }
       setTodaySuccess(`Test email for Day ${dayNum} successfully sent!`);
       fetchLogs();
