@@ -148,48 +148,49 @@ Respond ONLY with a valid, clean JSON object matching the requested Lesson inter
     logEvent("lesson_generation_succeeded", dayNumber, "Lesson successfully constructed and validated.");
   }
 
-  // 7. Save generated lesson in Supabase
-  try {
-    // Insert curriculum topic just in case it wasn't seeded
-    const dbTopic = await sql<any[]>`
-      SELECT id FROM curriculum_topics WHERE day_number = ${dayNumber} LIMIT 1
-    `;
-    let topicId: number | null = dbTopic.length > 0 ? dbTopic[0].id : null;
-
-    if (!topicId) {
-      const insertedTopic = await sql<any[]>`
-        INSERT INTO curriculum_topics (day_number, level, topic, scenario, grammar_focus, vocabulary_theme, telc_skill)
-        VALUES (${dayNumber}, ${topic.level}, ${topic.topic}, ${topic.scenario}, ${topic.grammarFocus}, ${topic.vocabularyTheme}, ${topic.telcSkill})
-        RETURNING id
+  // 7. Save generated lesson to Supabase — fire-and-forget to avoid blocking
+  (async () => {
+    try {
+      // Insert curriculum topic just in case it wasn't seeded
+      const dbTopic = await sql<any[]>`
+        SELECT id FROM curriculum_topics WHERE day_number = ${dayNumber} LIMIT 1
       `;
-      topicId = insertedTopic[0]?.id || null;
-    }
+      let topicId: number | null = dbTopic.length > 0 ? dbTopic[0].id : null;
 
-    await sql`
-      INSERT INTO generated_lessons (day_number, topic_id, lesson_json, model)
-      VALUES (${dayNumber}, ${topicId}, ${JSON.stringify(finalLesson)}, ${process.env.GROQ_MODEL || "llama-3.3-70b-versatile"})
-      ON CONFLICT (day_number) DO UPDATE SET
-        lesson_json = EXCLUDED.lesson_json,
-        model = EXCLUDED.model,
-        updated_at = now()
-    `;
+      if (!topicId) {
+        const insertedTopic = await sql<any[]>`
+          INSERT INTO curriculum_topics (day_number, level, topic, scenario, grammar_focus, vocabulary_theme, telc_skill)
+          VALUES (${dayNumber}, ${topic.level}, ${topic.topic}, ${topic.scenario}, ${topic.grammarFocus}, ${topic.vocabularyTheme}, ${topic.telcSkill})
+          RETURNING id
+        `;
+        topicId = insertedTopic[0]?.id || null;
+      }
 
-    // 8. Extract and save new vocabulary items to DB
-    for (const v of finalLesson.vocabulary) {
-      // Upsert based on german word in vocabulary list
-      const nextReview = calculateNextReviewDate(0); // Day 1 (+1 day) schedule for new words
       await sql`
-        INSERT INTO vocabulary_items (
-          day_number, german, article, plural, english, example_german, next_review_at
-        ) VALUES (
-          ${dayNumber}, ${v.german}, ${v.article}, ${v.plural || ""}, ${v.english}, ${v.exampleGerman}, ${nextReview}
-        )
-        ON CONFLICT DO NOTHING
+        INSERT INTO generated_lessons (day_number, topic_id, lesson_json, model)
+        VALUES (${dayNumber}, ${topicId}, ${JSON.stringify(finalLesson)}, ${process.env.GROQ_MODEL || "llama-3.3-70b-versatile"})
+        ON CONFLICT (day_number) DO UPDATE SET
+          lesson_json = EXCLUDED.lesson_json,
+          model = EXCLUDED.model,
+          updated_at = now()
       `;
+
+      // 8. Extract and save new vocabulary items — non-blocking batch
+      for (const v of finalLesson!.vocabulary) {
+        const nextReview = calculateNextReviewDate(0);
+        sql`
+          INSERT INTO vocabulary_items (
+            day_number, german, article, plural, english, example_german, next_review_at
+          ) VALUES (
+            ${dayNumber}, ${v.german}, ${v.article}, ${v.plural || ""}, ${v.english}, ${v.exampleGerman}, ${nextReview}
+          )
+          ON CONFLICT DO NOTHING
+        `.catch(() => { /* non-fatal */ });
+      }
+    } catch (dbErr) {
+      console.error("Failed to commit generated lesson details to Supabase database:", dbErr);
     }
-  } catch (dbErr) {
-    console.error("Failed to commit generated lesson details to Supabase database:", dbErr);
-  }
+  })();
 
   return finalLesson;
 }
@@ -521,11 +522,34 @@ export async function sendTodayManual(): Promise<{ alreadySent: boolean; dayNumb
   }
 
   if (!lesson) {
-    // No lesson cached yet — fail fast with a friendly message
-    throw new Error(
-      `Lesson for Day ${dayNumber} has not been generated yet. ` +
-      `The daily cron runs at 06:00. You can also click "Send Test" to generate and send in one step.`
-    );
+    // No lesson cached — generate a base lesson quickly (single Groq call, no enrichment/vocab inserts)
+    console.log(`[sendTodayManual] No cached lesson for day ${dayNumber}. Generating base lesson via fast path.`);
+    const topic = getTopicForDay(dayNumber);
+    const profile = getDifficultyProfile(dayNumber);
+    const { systemPrompt, userPrompt } = buildLessonPrompt({
+      dayNumber,
+      level: topic.level,
+      topic: topic.topic,
+      scenario: topic.scenario,
+      grammarFocus: topic.grammarFocus,
+      vocabularyTheme: topic.vocabularyTheme,
+      telcSkill: topic.telcSkill,
+      profile,
+      reviewWords: [], // skip spaced-repetition DB query to save time
+    });
+    try {
+      const raw = await generateContent({ systemPrompt, userPrompt, jsonMode: true, temperature: 0.2 });
+      const validationResult = validateLesson(JSON.parse(raw));
+      lesson = validationResult.success ? validationResult.data : generateFallbackLesson(dayNumber, topic, []);
+    } catch {
+      lesson = generateFallbackLesson(dayNumber, topic, []);
+    }
+    // Cache it non-blocking so next send is instant
+    sql`
+      INSERT INTO generated_lessons (day_number, lesson_json, model)
+      VALUES (${dayNumber}, ${JSON.stringify(lesson)}, ${process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'})
+      ON CONFLICT (day_number) DO UPDATE SET lesson_json = EXCLUDED.lesson_json, updated_at = now()
+    `.catch((e: any) => console.error("Failed to cache lesson:", e));
   }
 
   // 3. Send email (no TTS, no letter — just the main lesson, fast)
