@@ -66,12 +66,13 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
  * Fetches one MP3 chunk from Google Translate TTS.
  * Returns a Buffer or throws on HTTP error.
  */
-async function fetchTtsChunk(text: string): Promise<Buffer> {
+async function fetchTtsChunk(text: string, signal?: AbortSignal): Promise<Buffer> {
   const url =
     `https://translate.google.com/translate_tts` +
     `?ie=UTF-8&tl=de&client=tw-ob&q=${encodeURIComponent(text)}`;
 
   const response = await fetch(url, {
+    signal,
     headers: {
       // Mimic a browser to avoid 403s from the endpoint
       "User-Agent":
@@ -115,19 +116,28 @@ export async function getGermanTtsBuffer(
     const chunks = splitIntoChunks(clipped);
     if (chunks.length === 0) return null;
 
-    console.log(`[TTS] Synthesising ${chunks.length} chunk(s) for ${clipped.length} chars of German text.`);
+    console.log(`[TTS] Synthesising ${chunks.length} chunk(s) in parallel.`);
 
-    const buffers: Buffer[] = [];
+    // Set a strict timeout of 1800ms for all fetches combined to avoid serverless function timeouts
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      console.warn("[TTS] Fetch timeout reached, aborting all chunks.");
+      controller.abort();
+    }, 1800);
 
-    for (let i = 0; i < chunks.length; i++) {
-      const buf = await fetchTtsChunk(chunks[i]);
-      buffers.push(buf);
-      if (i < chunks.length - 1) await sleep(TTS_DELAY_MS);
+    try {
+      const fetchPromises = chunks.map(chunk => fetchTtsChunk(chunk, controller.signal));
+      const buffers = await Promise.all(fetchPromises);
+      clearTimeout(timeoutId);
+      
+      const combined = Buffer.concat(buffers);
+      console.log(`[TTS] Audio generated: ${combined.length} bytes.`);
+      return combined;
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      console.error("[TTS] Failed to retrieve some chunks (non-fatal):", err?.message || err);
+      return null;
     }
-
-    const combined = Buffer.concat(buffers);
-    console.log(`[TTS] Audio generated: ${combined.length} bytes (${(combined.length / 1024).toFixed(1)} KB).`);
-    return combined;
   } catch (err: any) {
     console.error("[TTS] Failed to generate audio (non-fatal):", err?.message ?? err);
     return null;
