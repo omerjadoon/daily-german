@@ -13,24 +13,26 @@ import { getGermanTtsBase64 } from "./ttsService";
 const defaultRecipient = process.env.EMAIL_TO || "omerkhanjadoons@gmail.com";
 
 /**
- * Log an operational event into the database
+ * Log an operational event into the database — FIRE AND FORGET.
+ * Logs to console immediately (synchronous), then fires the DB insert
+ * without awaiting it so it never blocks the critical execution path.
  */
-export async function logEvent(
+export function logEvent(
   eventType: string,
   dayNumber: number | null,
   message: string,
   metadata: any = null
-): Promise<void> {
+): void {
+  // Always log to console immediately (zero latency)
   console.log(`[Event - ${eventType}] Day ${dayNumber}: ${message}`, metadata ? JSON.stringify(metadata, null, 2) : "");
-  try {
-    const metaJson = metadata ? JSON.stringify(metadata) : null;
-    await sql`
-      INSERT INTO lesson_events (event_type, day_number, message, metadata)
-      VALUES (${eventType}, ${dayNumber}, ${message}, ${metaJson})
-    `;
-  } catch (err) {
-    console.error("Failed to log operational event in Supabase:", err);
-  }
+  // Fire DB insert without blocking — failures are silently swallowed
+  const metaJson = metadata ? JSON.stringify(metadata) : null;
+  sql`
+    INSERT INTO lesson_events (event_type, day_number, message, metadata)
+    VALUES (${eventType}, ${dayNumber}, ${message}, ${metaJson})
+  `.catch((err: any) => {
+    console.error("Failed to log event to DB (non-fatal):", err?.message ?? err);
+  });
 }
 
 /**
@@ -56,7 +58,7 @@ export async function getOrGenerateLesson(dayNumber: number): Promise<Lesson> {
     console.error("Error checking generated lessons table:", err);
   }
 
-  await logEvent("lesson_generation_started", dayNumber, `Generating lesson for day ${dayNumber} using topic: ${topic.topic}`);
+  logEvent("lesson_generation_started", dayNumber, `Generating lesson for day ${dayNumber} using topic: ${topic.topic}`);
 
   // 2. Fetch spaced repetition review words (5 words)
   const reviewWords = await getReviewWords(dayNumber);
@@ -94,16 +96,16 @@ export async function getOrGenerateLesson(dayNumber: number): Promise<Lesson> {
       finalLesson = validationResult.data;
     } else {
       attemptError = validationResult.error.format();
-      await logEvent("lesson_validation_failed", dayNumber, "Initial Groq output failed Zod schema checks.", attemptError);
+      logEvent("lesson_validation_failed", dayNumber, "Initial Groq output failed Zod schema checks.", attemptError);
     }
   } catch (err: any) {
     attemptError = err.message || err;
-    await logEvent("lesson_generation_failed", dayNumber, "Initial Groq query threw an exception.", { error: attemptError });
+    logEvent("lesson_generation_failed", dayNumber, "Initial Groq query threw an exception.", { error: attemptError });
   }
 
   // 5. Repair flow (Retry once with repair prompt if initial attempt failed)
   if (!finalLesson) {
-    await logEvent("lesson_repair_started", dayNumber, "Initiating LLM repair cycle due to structure mismatch.");
+    logEvent("lesson_repair_started", dayNumber, "Initiating LLM repair cycle due to structure mismatch.");
     try {
       const repairUserPrompt = `Your previous output did not match the strict schema. Please generate the correct JSON object only.
 
@@ -128,12 +130,12 @@ Respond ONLY with a valid, clean JSON object matching the requested Lesson inter
 
       if (repairValResult.success) {
         finalLesson = repairValResult.data;
-        await logEvent("lesson_repair_succeeded", dayNumber, "Repair successfully reconstructed correct schema.");
+        logEvent("lesson_repair_succeeded", dayNumber, "Repair successfully reconstructed correct schema.");
       } else {
-        await logEvent("lesson_repair_failed", dayNumber, "Repair attempt failed Zod validation.", repairValResult.error.format());
+        logEvent("lesson_repair_failed", dayNumber, "Repair attempt failed Zod validation.", repairValResult.error.format());
       }
     } catch (repairErr: any) {
-      await logEvent("lesson_repair_failed", dayNumber, "Repair attempt threw exception.", { error: repairErr.message || repairErr });
+      logEvent("lesson_repair_failed", dayNumber, "Repair attempt threw exception.", { error: repairErr.message || repairErr });
     }
   }
 
@@ -141,9 +143,9 @@ Respond ONLY with a valid, clean JSON object matching the requested Lesson inter
   if (!finalLesson) {
     console.warn(`Generative engine failed for day ${dayNumber}. Engaging emergency local fallback.`);
     finalLesson = generateFallbackLesson(dayNumber, topic, reviewWords);
-    await logEvent("lesson_generation_failed", dayNumber, "Generative engine failed completely. Loaded local safety fallback.");
+    logEvent("lesson_generation_failed", dayNumber, "Generative engine failed completely. Loaded local safety fallback.");
   } else {
-    await logEvent("lesson_generation_succeeded", dayNumber, "Lesson successfully constructed and validated.");
+    logEvent("lesson_generation_succeeded", dayNumber, "Lesson successfully constructed and validated.");
   }
 
   // 7. Save generated lesson in Supabase
@@ -198,7 +200,7 @@ Respond ONLY with a valid, clean JSON object matching the requested Lesson inter
  */
 async function getEnrichmentForLesson(lesson: Lesson, dayNumber: number): Promise<Lesson> {
   try {
-    await logEvent("enrichment_generation_started", dayNumber, "Generating pronunciation & tips enrichment via second LLM call.");
+    logEvent("enrichment_generation_started", dayNumber, "Generating pronunciation & tips enrichment via second LLM call.");
 
     const { systemPrompt, userPrompt } = buildEnrichmentPrompt({
       dayNumber,
@@ -227,9 +229,9 @@ async function getEnrichmentForLesson(lesson: Lesson, dayNumber: number): Promis
       lesson = { ...lesson, pronunciationSection: enrichment.pronunciationSection };
     }
 
-    await logEvent("enrichment_generation_succeeded", dayNumber, "Enrichment merged into lesson successfully.");
+    logEvent("enrichment_generation_succeeded", dayNumber, "Enrichment merged into lesson successfully.");
   } catch (err: any) {
-    await logEvent("enrichment_generation_failed", dayNumber, `Enrichment generation failed (non-fatal): ${err.message || err}`);
+    logEvent("enrichment_generation_failed", dayNumber, `Enrichment generation failed (non-fatal): ${err.message || err}`);
   }
 
   return lesson;
@@ -242,7 +244,7 @@ async function getEnrichmentForLesson(lesson: Lesson, dayNumber: number): Promis
  */
 async function getWordBankForLesson(lesson: Lesson, dayNumber: number): Promise<Lesson> {
   try {
-    await logEvent("word_bank_generation_started", dayNumber, "Generating word bank via dedicated LLM call.");
+    logEvent("word_bank_generation_started", dayNumber, "Generating word bank via dedicated LLM call.");
 
     const { systemPrompt, userPrompt } = buildWordBankPrompt({
       dayNumber,
@@ -266,12 +268,12 @@ async function getWordBankForLesson(lesson: Lesson, dayNumber: number): Promise<
       Array.isArray(wordBank.adjectives) && wordBank.adjectives.length === 10
     ) {
       lesson = { ...lesson, wordBank };
-      await logEvent("word_bank_generation_succeeded", dayNumber, "Word bank merged into lesson successfully.");
+      logEvent("word_bank_generation_succeeded", dayNumber, "Word bank merged into lesson successfully.");
     } else {
-      await logEvent("word_bank_generation_failed", dayNumber, "Word bank response did not match expected shape (10/10/10).", wordBank);
+      logEvent("word_bank_generation_failed", dayNumber, "Word bank response did not match expected shape (10/10/10).", wordBank);
     }
   } catch (err: any) {
-    await logEvent("word_bank_generation_failed", dayNumber, `Word bank generation failed (non-fatal): ${err.message || err}`);
+    logEvent("word_bank_generation_failed", dayNumber, `Word bank generation failed (non-fatal): ${err.message || err}`);
   }
 
   return lesson;
@@ -297,7 +299,7 @@ async function getLetterForDay(dayNumber: number, level: string): Promise<DailyL
       // Table may not exist yet — continue to generate
     }
 
-    await logEvent("letter_generation_started", dayNumber, "Generating daily letter via dedicated LLM call.");
+    logEvent("letter_generation_started", dayNumber, "Generating daily letter via dedicated LLM call.");
 
     const { systemPrompt, userPrompt, letterTopic } = buildLetterPrompt({ dayNumber, level });
 
@@ -312,7 +314,7 @@ async function getLetterForDay(dayNumber: number, level: string): Promise<DailyL
     const result = validateDailyLetter(parsed);
 
     if (!result.success) {
-      await logEvent("letter_generation_failed", dayNumber, "Letter failed validation.", result.error.format());
+      logEvent("letter_generation_failed", dayNumber, "Letter failed validation.", result.error.format());
       return null;
     }
 
@@ -331,10 +333,10 @@ async function getLetterForDay(dayNumber: number, level: string): Promise<DailyL
       // Table may not exist — non-fatal
     }
 
-    await logEvent("letter_generation_succeeded", dayNumber, `Letter generated: "${letterTopic}"`);
+    logEvent("letter_generation_succeeded", dayNumber, `Letter generated: "${letterTopic}"`);
     return letter;
   } catch (err: any) {
-    await logEvent("letter_generation_failed", dayNumber, `Letter generation failed (non-fatal): ${err.message || err}`);
+    logEvent("letter_generation_failed", dayNumber, `Letter generation failed (non-fatal): ${err.message || err}`);
     return null;
   }
 }
@@ -355,7 +357,7 @@ export async function sendDailyLesson(): Promise<{ alreadySent: boolean; dayNumb
       LIMIT 1
     `;
     if (alreadySent.length > 0) {
-      await logEvent(
+      logEvent(
         "duplicate_send_prevented",
         dayNumber,
         `Duplicate email prevented for ${emailTo} on day ${dayNumber}.`
@@ -366,7 +368,7 @@ export async function sendDailyLesson(): Promise<{ alreadySent: boolean; dayNumb
     console.error("Duplicate send verification query failed:", err);
   }
 
-  await logEvent("email_send_started", dayNumber, `Initiating daily tutor send to ${emailTo}.`);
+  logEvent("email_send_started", dayNumber, `Initiating daily tutor send to ${emailTo}.`);
 
   // 2. Fetch or create base lesson content
   let lesson = await getOrGenerateLesson(dayNumber);
@@ -434,10 +436,10 @@ export async function sendDailyLesson(): Promise<{ alreadySent: boolean; dayNumb
             status = 'sent',
             sent_at = now()
         `;
-        await logEvent("email_send_succeeded", dayNumber, `Main lesson email dispatched to ${emailTo}. Audio: ${storyAudioBase64 ? 'attached' : 'unavailable'}. Provider ID: ${msgId}`);
+        logEvent("email_send_succeeded", dayNumber, `Main lesson email dispatched to ${emailTo}. Audio: ${storyAudioBase64 ? 'attached' : 'unavailable'}. Provider ID: ${msgId}`);
       } catch (dbErr: any) {
         console.error("Failed to write to sent_lessons table:", dbErr);
-        await logEvent("email_send_succeeded_db_failed", dayNumber, `Main lesson email dispatched to ${emailTo} but DB logging failed: ${dbErr.message || dbErr}`);
+        logEvent("email_send_succeeded_db_failed", dayNumber, `Main lesson email dispatched to ${emailTo} but DB logging failed: ${dbErr.message || dbErr}`);
       }
       return msgId;
     })();
@@ -460,10 +462,10 @@ export async function sendDailyLesson(): Promise<{ alreadySent: boolean; dayNumb
             ? [{ content: letterAudioBase64, filename: `day${dayNumber}_letter.mp3`, contentType: "audio/mpeg" }]
             : [],
         });
-        await logEvent("letter_email_sent", dayNumber, `Letter email dispatched to ${emailTo}. Audio: ${letterAudioBase64 ? 'attached' : 'unavailable'}. Provider ID: ${msgId}`);
+        logEvent("letter_email_sent", dayNumber, `Letter email dispatched to ${emailTo}. Audio: ${letterAudioBase64 ? 'attached' : 'unavailable'}. Provider ID: ${msgId}`);
         return msgId;
       } catch (letterErr: any) {
-        await logEvent("letter_email_failed", dayNumber, `Letter email failed (non-fatal): ${letterErr.message || letterErr}`);
+        logEvent("letter_email_failed", dayNumber, `Letter email failed (non-fatal): ${letterErr.message || letterErr}`);
         return null;
       }
     })();
@@ -472,7 +474,7 @@ export async function sendDailyLesson(): Promise<{ alreadySent: boolean; dayNumb
 
     return { alreadySent: false, dayNumber, lesson, messageId };
   } catch (sendErr: any) {
-    await logEvent("email_send_failed", dayNumber, `Delivery failed to ${emailTo}. Error: ${sendErr.message || sendErr}`);
+    logEvent("email_send_failed", dayNumber, `Delivery failed to ${emailTo}. Error: ${sendErr.message || sendErr}`);
     throw sendErr;
   }
 }
@@ -555,10 +557,10 @@ export async function sendTestLesson(dayNumber: number, recipient = defaultRecip
             status = 'test_sent',
             sent_at = now()
         `;
-        await logEvent("email_send_succeeded", dayNumber, `Test email dispatched to ${recipient}. Audio: ${storyAudioBase64 ? 'attached' : 'unavailable'}. Provider ID: ${msgId}`);
+        logEvent("email_send_succeeded", dayNumber, `Test email dispatched to ${recipient}. Audio: ${storyAudioBase64 ? 'attached' : 'unavailable'}. Provider ID: ${msgId}`);
       } catch (dbErr: any) {
         console.error("Failed to write test send to sent_lessons table:", dbErr);
-        await logEvent("email_send_succeeded_db_failed", dayNumber, `Test email dispatched to ${recipient} but DB logging failed: ${dbErr.message || dbErr}`);
+        logEvent("email_send_succeeded_db_failed", dayNumber, `Test email dispatched to ${recipient} but DB logging failed: ${dbErr.message || dbErr}`);
       }
       return msgId;
     })();
@@ -581,10 +583,10 @@ export async function sendTestLesson(dayNumber: number, recipient = defaultRecip
             ? [{ content: letterAudioBase64, filename: `day${dayNumber}_letter.mp3`, contentType: "audio/mpeg" }]
             : [],
         });
-        await logEvent("letter_email_sent", dayNumber, `Test letter email dispatched to ${recipient}. Audio: ${letterAudioBase64 ? 'attached' : 'unavailable'}. Provider ID: ${msgId}`);
+        logEvent("letter_email_sent", dayNumber, `Test letter email dispatched to ${recipient}. Audio: ${letterAudioBase64 ? 'attached' : 'unavailable'}. Provider ID: ${msgId}`);
         return msgId;
       } catch (letterErr: any) {
-        await logEvent("letter_email_failed", dayNumber, `Test letter email failed (non-fatal): ${letterErr.message || letterErr}`);
+        logEvent("letter_email_failed", dayNumber, `Test letter email failed (non-fatal): ${letterErr.message || letterErr}`);
         return null;
       }
     })();
@@ -593,7 +595,7 @@ export async function sendTestLesson(dayNumber: number, recipient = defaultRecip
 
     return { dayNumber, lesson, messageId };
   } catch (error: any) {
-    await logEvent("email_send_failed", dayNumber, `Test delivery failed to ${recipient}. Error: ${error.message || error}`);
+    logEvent("email_send_failed", dayNumber, `Test delivery failed to ${recipient}. Error: ${error.message || error}`);
     throw error;
   }
 }
