@@ -480,10 +480,76 @@ export async function sendDailyLesson(): Promise<{ alreadySent: boolean; dayNumb
 }
 
 /**
- * Manually trigger todays daily lesson with full duplicate prevention check.
+ * Manually trigger today's daily lesson — FAST PATH ONLY.
+ * Reads the already-cached lesson from the database and sends it immediately.
+ * Does NOT call any LLM APIs or generate audio — keeps execution under 5 seconds.
+ * If no cached lesson exists, returns an error asking the user to wait for the
+ * automatic daily generation (scheduled cron at 06:00).
  */
 export async function sendTodayManual(): Promise<{ alreadySent: boolean; dayNumber: number; lesson?: Lesson; messageId?: string }> {
-  return sendDailyLesson();
+  const dayNumber = getCurrentDayNumber();
+  const emailTo = defaultRecipient;
+
+  // 1. Check if already sent today
+  try {
+    const alreadySent = await sql<any[]>`
+      SELECT id FROM sent_lessons
+      WHERE day_number = ${dayNumber} AND email_to = ${emailTo} AND status = 'sent'
+      LIMIT 1
+    `;
+    if (alreadySent.length > 0) {
+      logEvent("duplicate_send_prevented", dayNumber, `Manual send: duplicate prevented for ${emailTo}.`);
+      return { alreadySent: true, dayNumber };
+    }
+  } catch (err) {
+    console.error("Duplicate send check failed:", err);
+  }
+
+  // 2. Load lesson from cache only — NO generation
+  let lesson: Lesson | null = null;
+  try {
+    const cached = await sql<any[]>`
+      SELECT lesson_json FROM generated_lessons
+      WHERE day_number = ${dayNumber}
+      LIMIT 1
+    `;
+    if (cached.length > 0) {
+      lesson = cached[0].lesson_json as Lesson;
+    }
+  } catch (err) {
+    console.error("Failed to load cached lesson:", err);
+  }
+
+  if (!lesson) {
+    // No lesson cached yet — fail fast with a friendly message
+    throw new Error(
+      `Lesson for Day ${dayNumber} has not been generated yet. ` +
+      `The daily cron runs at 06:00. You can also click "Send Test" to generate and send in one step.`
+    );
+  }
+
+  // 3. Send email (no TTS, no letter — just the main lesson, fast)
+  logEvent("email_send_started", dayNumber, `Manual send initiated to ${emailTo}.`);
+
+  const html = generateHtmlEmail(lesson);
+  const text = generateTextEmail(lesson);
+  const subject = lesson.subject;
+
+  const messageId = await sendTutorEmail({ to: emailTo, subject, html, text, attachments: [] });
+
+  // 4. Record send (best-effort, non-blocking)
+  sql`
+    INSERT INTO sent_lessons (day_number, email_to, subject, topic, level, provider_message_id, status)
+    VALUES (${dayNumber}, ${emailTo}, ${subject}, ${lesson.topic}, ${lesson.level}, ${messageId}, 'sent')
+    ON CONFLICT (day_number, email_to) DO UPDATE SET
+      provider_message_id = EXCLUDED.provider_message_id,
+      status = 'sent',
+      sent_at = now()
+  `.catch((err: any) => console.error("Failed to record sent lesson:", err));
+
+  logEvent("email_send_succeeded", dayNumber, `Manual send dispatched to ${emailTo}. Provider ID: ${messageId}`);
+
+  return { alreadySent: false, dayNumber, lesson, messageId };
 }
 
 /**
