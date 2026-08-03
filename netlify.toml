@@ -3,5 +3,11 @@
   publish = "dist"
   functions = "netlify/functions"
 
+[dev]
+  command = "npm run dev"
+  port = 8888
+  targetPort = 5173
+
 [functions."send-daily-lesson"]
   schedule = "0 6 * * *"
+
