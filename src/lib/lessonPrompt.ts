@@ -147,6 +147,69 @@ Remember: Return strict JSON only. Do not wrap in markdown \`\`\` json blocks.`;
 }
 
 /**
+ * Builds the system and user prompts for the dedicated word bank LLM call (3rd call).
+ * Generates exactly 10 nouns (with der/die/das), 10 verbs, and 10 adjectives,
+ * each with an optional opposite word for contrastive learning.
+ */
+export function buildWordBankPrompt(args: { dayNumber: number; level: string; topic: string }) {
+  const systemPrompt = `You are a precise German vocabulary expert generating structured word bank data for daily German lessons.
+Return ONLY a valid JSON object — no markdown, no explanations, no code blocks.
+
+Rules:
+- Generate exactly 10 nouns, 10 verbs, and 10 adjectives.
+- Words must be thematically relevant to today's topic and appropriate for the CEFR level.
+- Words must be unique and different for each day number — use the day number as a variation seed.
+- Nouns: include article (der/die/das), plural form, English meaning, a natural German example sentence, and an opposite noun if one exists (e.g. Anfang → das Ende).
+- Verbs: include infinitive form, English meaning, a natural German example sentence, and an opposite verb if one exists (e.g. kaufen → verkaufen).
+- Adjectives: ALWAYS include an opposite adjective (e.g. schnell → langsam, groß → klein). This field is required for adjectives.
+- Do NOT repeat very common words like "gehen", "gut", "Haus" on consecutive days.
+- Prioritize B1-relevant vocabulary that appears on the telc exam.
+- For the "opposite" field: use null if no meaningful opposite exists (mainly for nouns/verbs).`;
+
+  const userPrompt = `Generate a word bank for Day ${args.dayNumber}.
+Topic: ${args.topic}
+CEFR Level: ${args.level}
+
+Return a single JSON object with this exact shape:
+
+{
+  "nouns": [
+    {
+      "german": "Buch",
+      "article": "das",
+      "plural": "die Bücher",
+      "english": "book",
+      "example": "Das Buch liegt auf dem Tisch.",
+      "opposite": null
+    }
+    // ... 10 total. Use opposite like: { "german": "der Anfang", "english": "beginning" } or null
+  ],
+  "verbs": [
+    {
+      "german": "kaufen",
+      "english": "to buy",
+      "example": "Ich kaufe das Buch im Laden.",
+      "opposite": { "german": "verkaufen", "english": "to sell" }
+    }
+    // ... 10 total. Use opposite like: { "german": "verkaufen", "english": "to sell" } or null
+  ],
+  "adjectives": [
+    {
+      "german": "schnell",
+      "english": "fast / quick",
+      "example": "Der Zug ist sehr schnell.",
+      "opposite": { "german": "langsam", "english": "slow" }
+    }
+    // ... 10 total. Opposite is REQUIRED for adjectives.
+  ]
+}
+
+Remember: Return strict JSON only. Exactly 10 items in each array. Adjectives must always have an opposite.`;
+
+  return { systemPrompt, userPrompt };
+}
+
+/**
  * Builds the system and user prompts for the second, enrichment-focused LLM call.
  * This generates: tipsAndTricks, pronunciationGuide (per vocab word), and pronunciationSection.
  */
@@ -200,4 +263,103 @@ interface Enrichment {
 Remember: Return strict JSON only. Do not wrap in markdown \`\`\` json blocks.`;
 
   return { systemPrompt, userPrompt };
+}
+
+// A rotating pool of letter topics indexed by (dayNumber - 1) % length
+const LETTER_TOPICS: string[] = [
+  "Writing to your landlord about a broken heating system",
+  "Applying for a part-time job at a local café",
+  "Requesting an appointment with your doctor",
+  "Thanking a German friend for hosting you during a trip",
+  "Complaining to a neighbour about noise at night",
+  "Writing to your language school about course registration",
+  "Asking your employer for a day off",
+  "Sending a get-well-soon letter to a classmate",
+  "Returning a faulty product to an online shop",
+  "Inviting a friend to your birthday party in Germany",
+  "Reporting a lost item to the lost-and-found office",
+  "Writing to the city council about a broken streetlight",
+  "Applying for a library card at the local Stadtbibliothek",
+  "Requesting a reference letter from a former teacher",
+  "Informing your landlord you are moving out",
+  "Writing to a pen pal about your daily life in Germany",
+  "Registering a complaint about a late train at Deutsche Bahn",
+  "Asking your bank about opening a student account",
+  "Writing to a new colleague to introduce yourself",
+  "Requesting a certificate of employment from your HR department",
+  "Cancelling a gym membership",
+  "Writing to the Einwohnermeldeamt to change your registered address",
+  "Asking your university for an extension on an assignment",
+  "Sending a formal complaint to a restaurant after a bad experience",
+  "Writing a thank-you letter to a scholarship committee",
+  "Requesting information about a language course from the Volkshochschule",
+  "Informing your health insurance company about a change of address",
+  "Writing a letter to your child's school about an absence",
+  "Asking a neighbour to collect your post while you're on holiday",
+  "Writing to a local newspaper about a community issue",
+  "Applying for a student dormitory room",
+  "Sending a formal apology to a business partner",
+  "Writing to a museum asking about group discounts",
+  "Informing your insurance company about a car accident",
+  "Writing to the Jobcenter about your job search progress",
+  "Asking a hotel to confirm your reservation",
+  "Writing a cover letter for an internship in Germany",
+  "Complaining about incorrect charges on a phone bill",
+  "Writing to a travel agency to book a German tour",
+  "Requesting a parking permit from the local municipality",
+  "Writing a farewell letter to colleagues before leaving a job",
+  "Asking your landlord for permission to have a pet",
+  "Reporting a stolen bicycle to the police",
+  "Writing to the Finanzamt about a tax question",
+  "Informing your electricity provider about a move",
+  "Writing to a German university to request an application form",
+  "Asking the city hall for information about recycling rules",
+  "Sending a formal letter to a childcare centre about enrollment",
+  "Writing to a friend explaining your daily routine in Germany",
+  "Asking a company for a product catalogue",
+];
+
+/**
+ * Builds the prompts for the dedicated daily letter LLM call (4th call).
+ * Generates a German letter + English translation + key phrases on a unique topic per day.
+ */
+export function buildLetterPrompt(args: { dayNumber: number; level: string }) {
+  const topicIndex = (args.dayNumber - 1) % LETTER_TOPICS.length;
+  const letterTopic = LETTER_TOPICS[topicIndex];
+
+  const systemPrompt = `You are an expert German language tutor specialising in practical written communication for the telc Deutsch B1 exam.
+Return ONLY a valid JSON object — no markdown, no explanations, no code blocks.
+
+Rules:
+- Write a realistic, natural German letter for the given topic at the given CEFR level.
+- The letter must be 150–200 words in German.
+- Include a proper greeting (Sehr geehrte/r... or Liebe/r...) and closing (Mit freundlichen Grüßen / Viele Grüße).
+- Provide a complete, natural English translation of the entire letter.
+- Highlight 5–8 key useful phrases from the letter that a learner should memorise.
+- Include a short tip about the letter's register (formal vs. informal).`;
+
+  const userPrompt = `Generate a German letter for Day ${args.dayNumber} (CEFR Level: ${args.level}).
+
+Letter Topic: ${letterTopic}
+
+Return a single JSON object with this exact shape:
+
+{
+  "topic": "${letterTopic}",
+  "register": "formal",
+  "letterGerman": "... full German letter (150-200 words) ...",
+  "letterEnglish": "... full English translation ...",
+  "keyPhrases": [
+    {
+      "phrase": "Ich schreibe Ihnen bezüglich...",
+      "meaning": "I am writing to you regarding...",
+      "usage": "Used to state the purpose of a formal letter."
+    }
+  ],
+  "registerTip": "2-3 sentences explaining the register choice and relevant German letter-writing conventions."
+}
+
+Remember: Return strict JSON only. Exactly 5–8 key phrases.`;
+
+  return { systemPrompt, userPrompt, letterTopic };
 }

@@ -10,15 +10,23 @@ if (!apiKey) {
 
 export const resend = new Resend(apiKey || "dummy-key-for-now");
 
+export interface EmailAttachment {
+  /** Base64-encoded file content */
+  content: string;
+  filename: string;
+  contentType: string;
+}
+
 export interface SendEmailOptions {
   to?: string;
   subject: string;
   html: string;
   text: string;
+  attachments?: EmailAttachment[];
 }
 
 /**
- * Sends a B1 German tutor lesson email using Resend
+ * Sends a B1 German tutor lesson email using Resend.
  * Returns the message ID if successful.
  */
 export async function sendTutorEmail(options: SendEmailOptions): Promise<string> {
@@ -31,6 +39,9 @@ export async function sendTutorEmail(options: SendEmailOptions): Promise<string>
       subject: options.subject,
       html: options.html,
       text: options.text,
+      ...(options.attachments && options.attachments.length > 0
+        ? { attachments: options.attachments }
+        : {}),
     });
 
     if (response.error) {

@@ -1,4 +1,4 @@
-import { Lesson } from "./validation";
+import { Lesson, DailyLetter } from "./validation";
 
 // Category badge colors for Tips & Tricks
 const CATEGORY_STYLES: Record<string, { bg: string; color: string; label: string }> = {
@@ -147,6 +147,14 @@ export function generateHtmlEmail(lesson: Lesson): string {
                 </div>
               </div>
 
+              <!-- 🔊 Audio Pronunciation Notice -->
+              <div style="background-color: #fefce8; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 20px;">🔊</span>
+                <p style="margin: 0; font-size: 13px; color: #92400e; line-height: 1.5;">
+                  <strong>Audio Pronunciation attached!</strong> Open the <code>day${lesson.day}_story.mp3</code> attachment to listen to the German dialogue read aloud. Great for shadowing practice!
+                </p>
+              </div>
+
               <!-- English Translation Card -->
               <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
                 <h3 style="margin-top: 0; margin-bottom: 12px; color: #475569; font-size: 16px;">🇬🇧 English Translation</h3>
@@ -267,6 +275,107 @@ export function generateHtmlEmail(lesson: Lesson): string {
                   ${answerList}
                 </div>
               </div>
+
+              <!-- Word Bank Section -->
+              ${lesson.wordBank ? `
+              <div style="margin-bottom: 25px;">
+                <h2 style="color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-size: 20px; margin-bottom: 16px;">📚 Wortschatz-Bank (Daily Word Bank)</h2>
+
+                <!-- Nouns -->
+                <div style="margin-bottom: 16px;">
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <span style="background-color: #dbeafe; color: #1d4ed8; padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">🏷️ Nouns (Nomen) — 10</span>
+                  </div>
+                  <div style="overflow-x: auto; border: 1px solid #bfdbfe; border-radius: 8px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; background-color: #eff6ff;">
+                      <thead>
+                        <tr style="background-color: #dbeafe; border-bottom: 2px solid #93c5fd;">
+                          <th style="padding: 9px 10px; color: #1e40af; font-weight: 700;">Artikel</th>
+                          <th style="padding: 9px 10px; color: #1e40af; font-weight: 700;">Nomen</th>
+                          <th style="padding: 9px 10px; color: #1e40af; font-weight: 700;">Plural</th>
+                          <th style="padding: 9px 10px; color: #1e40af; font-weight: 700;">English</th>
+                          <th style="padding: 9px 10px; color: #1e40af; font-weight: 700; width: 38%;">Beispielsatz</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${lesson.wordBank.nouns.map((n, i) => `
+                        <tr style="border-bottom: 1px solid #bfdbfe; background-color: ${i % 2 === 0 ? '#eff6ff' : '#f0f7ff'};">
+                          <td style="padding: 8px 10px;">
+                            <span style="background-color: ${n.article === 'der' ? '#fee2e2' : n.article === 'die' ? '#fce7f3' : '#d1fae5'}; color: ${n.article === 'der' ? '#991b1b' : n.article === 'die' ? '#9d174d' : '#065f46'}; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 700;">${n.article}</span>
+                          </td>
+                          <td style="padding: 8px 10px; font-weight: 700; color: #1e293b;">
+                            ${n.german}
+                            ${n.opposite ? `<br><span style="font-size: 11px; font-weight: normal; color: #b91c1c; background-color: #fef2f2; padding: 1px 4px; border-radius: 4px; display: inline-block; margin-top: 4px;">↔ Gegenteil: ${n.opposite.german} (${n.opposite.english})</span>` : ''}
+                          </td>
+                          <td style="padding: 8px 10px; color: #475569; font-size: 12px;">${n.plural}</td>
+                          <td style="padding: 8px 10px; color: #334155;">${n.english}</td>
+                          <td style="padding: 8px 10px; color: #475569; font-style: italic; line-height: 1.4;">${n.example}</td>
+                        </tr>`).join('')}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Verbs -->
+                <div style="margin-bottom: 16px;">
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <span style="background-color: #d1fae5; color: #065f46; padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">⚡ Verbs (Verben) — 10</span>
+                  </div>
+                  <div style="overflow-x: auto; border: 1px solid #6ee7b7; border-radius: 8px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; background-color: #ecfdf5;">
+                      <thead>
+                        <tr style="background-color: #d1fae5; border-bottom: 2px solid #6ee7b7;">
+                          <th style="padding: 9px 10px; color: #065f46; font-weight: 700;">Verb (Infinitiv)</th>
+                          <th style="padding: 9px 10px; color: #065f46; font-weight: 700;">English</th>
+                          <th style="padding: 9px 10px; color: #065f46; font-weight: 700; width: 48%;">Beispielsatz</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${lesson.wordBank.verbs.map((v, i) => `
+                        <tr style="border-bottom: 1px solid #a7f3d0; background-color: ${i % 2 === 0 ? '#ecfdf5' : '#f0fdf8'};">
+                          <td style="padding: 8px 10px; font-weight: 700; color: #065f46;">
+                            ${v.german}
+                            ${v.opposite ? `<br><span style="font-size: 11px; font-weight: normal; color: #b91c1c; background-color: #fef2f2; padding: 1px 4px; border-radius: 4px; display: inline-block; margin-top: 4px;">↔ Gegenteil: ${v.opposite.german} (${v.opposite.english})</span>` : ''}
+                          </td>
+                          <td style="padding: 8px 10px; color: #334155;">${v.english}</td>
+                          <td style="padding: 8px 10px; color: #475569; font-style: italic; line-height: 1.4;">${v.example}</td>
+                        </tr>`).join('')}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Adjectives -->
+                <div style="margin-bottom: 4px;">
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <span style="background-color: #ede9fe; color: #5b21b6; padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">🎨 Adjectives (Adjektive) — 10</span>
+                  </div>
+                  <div style="overflow-x: auto; border: 1px solid #c4b5fd; border-radius: 8px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; background-color: #f5f3ff;">
+                      <thead>
+                        <tr style="background-color: #ede9fe; border-bottom: 2px solid #c4b5fd;">
+                          <th style="padding: 9px 10px; color: #4c1d95; font-weight: 700;">Adjektiv</th>
+                          <th style="padding: 9px 10px; color: #4c1d95; font-weight: 700;">English</th>
+                          <th style="padding: 9px 10px; color: #4c1d95; font-weight: 700; width: 48%;">Beispielsatz</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${lesson.wordBank.adjectives.map((a, i) => `
+                        <tr style="border-bottom: 1px solid #ddd6fe; background-color: ${i % 2 === 0 ? '#f5f3ff' : '#f8f7ff'};">
+                          <td style="padding: 8px 10px; font-weight: 700; color: #5b21b6;">
+                            ${a.german}
+                            ${a.opposite ? `<br><span style="font-size: 11px; font-weight: normal; color: #b91c1c; background-color: #fef2f2; padding: 1px 4px; border-radius: 4px; display: inline-block; margin-top: 4px;">↔ Gegenteil: ${a.opposite.german} (${a.opposite.english})</span>` : ''}
+                          </td>
+                          <td style="padding: 8px 10px; color: #334155;">${a.english}</td>
+                          <td style="padding: 8px 10px; color: #475569; font-style: italic; line-height: 1.4;">${a.example}</td>
+                        </tr>`).join('')}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+              </div>
+              ` : ''}
 
               <!-- Tips & Tricks Section -->
               ${lesson.tipsAndTricks && lesson.tipsAndTricks.length > 0 ? `
@@ -443,6 +552,24 @@ ${lesson.closingStory.storyEnglish.replace(/\*\*/g, "")}
 ✅ LÖSUNGEN (ANSWERS):
 -----------------------------------------
 ${answersText}
+${lesson.wordBank ? `
+-----------------------------------------
+📚 WORTSCHATZ-BANK (DAILY WORD BANK):
+-----------------------------------------
+🏷️ NOUNS (NOMEN):
+${lesson.wordBank.nouns.map((n, i) =>
+  `${i + 1}. ${n.article} ${n.german} | Plural: ${n.plural} | ${n.english}${n.opposite ? ` (Gegenteil: ${n.opposite.german} - ${n.opposite.english})` : ''}\n   → ${n.example}`
+).join('\n')}
+
+⚡ VERBS (VERBEN):
+${lesson.wordBank.verbs.map((v, i) =>
+  `${i + 1}. ${v.german} | ${v.english}${v.opposite ? ` (Gegenteil: ${v.opposite.german} - ${v.opposite.english})` : ''}\n   → ${v.example}`
+).join('\n')}
+
+🎨 ADJECTIVES (ADJEKTIVE):
+${lesson.wordBank.adjectives.map((a, i) =>
+  `${i + 1}. ${a.german} | ${a.english}${a.opposite ? ` (Gegenteil: ${a.opposite.german} - ${a.opposite.english})` : ''}\n   → ${a.example}`
+).join('\n')}` : ''}
 ${lesson.tipsAndTricks && lesson.tipsAndTricks.length > 0 ? `
 -----------------------------------------
 🧠 LERNTIPPS & TRICKS:
@@ -467,5 +594,142 @@ ${lesson.pronunciationSection.rules.map((r) =>
 Daily German B1 Tutor
 Sie erhalten diese Email, um sich täglich auf Ihre telc B1 Deutschprüfung vorzubereiten.
 Empfänger: ${process.env.EMAIL_TO || "omerkhanjadoons@gmail.com"}
+`;
+}
+
+/**
+ * Renders the daily German letter as a premium HTML email.
+ */
+export function generateLetterHtmlEmail(letter: DailyLetter, dayNumber: number): string {
+  const registerColor = letter.register === "formal" ? { bg: "#1e3a8a", accent: "#3b82f6", badge: "#dbeafe", badgeText: "#1d4ed8", label: "📝 Formal" }
+                                                     : { bg: "#4a1d96", accent: "#8b5cf6", badge: "#ede9fe", badgeText: "#5b21b6", label: "💬 Informal" };
+
+  const keyPhrasesRows = letter.keyPhrases.map((kp, i) => `
+    <tr style="border-bottom: 1px solid #e2e8f0; background-color: ${i % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+      <td style="padding: 10px 12px; font-weight: 700; color: #1e40af; font-size: 14px; white-space: nowrap;">${kp.phrase}</td>
+      <td style="padding: 10px 12px; color: #334155; font-size: 14px; font-style: italic;">${kp.meaning}</td>
+      <td style="padding: 10px 12px; color: #475569; font-size: 13px; line-height: 1.5;">${kp.usage}</td>
+    </tr>`).join('');
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day ${dayNumber}: German Letter Practice</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f1f5f9; padding: 20px 10px;">
+    <tr>
+      <td align="center">
+        <table width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #e2e8f0;">
+
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, ${registerColor.bg} 0%, ${registerColor.accent} 100%); padding: 30px 25px; text-align: center;">
+              <span style="background-color: rgba(255,255,255,0.2); color: #ffffff; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Tag ${dayNumber} • B1 Level • ${registerColor.label}</span>
+              <h1 style="color: #ffffff; margin: 15px 0 5px 0; font-size: 22px; font-weight: 800;">✉️ Daily German Letter Practice</h1>
+              <p style="color: rgba(255,255,255,0.8); margin: 0; font-size: 14px; font-style: italic; max-width: 440px; margin: 5px auto 0;">${letter.topic}</p>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding: 25px;">
+
+              <!-- Register Tip -->
+              <div style="background-color: ${registerColor.badge}; border-left: 4px solid ${registerColor.accent}; padding: 14px 16px; border-radius: 6px; margin-bottom: 24px;">
+                <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #1e293b;">
+                  <strong style="color: ${registerColor.badgeText};">📌 Register Note:</strong> ${letter.registerTip}
+                </p>
+              </div>
+
+              <!-- German Letter -->
+              <h2 style="color: #1e3a8a; font-size: 18px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 14px;">🇩🇪 Der Brief (German Letter)</h2>
+              <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 16px; white-space: pre-line; font-size: 15px; line-height: 1.8; color: #1e293b;">${letter.letterGerman}</div>
+
+              <!-- 🔊 Audio Notice for Letter -->
+              <div style="background-color: #fefce8; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 16px; margin-bottom: 24px; display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 20px;">🔊</span>
+                <p style="margin: 0; font-size: 13px; color: #92400e; line-height: 1.5;">
+                  <strong>Audio attached!</strong> Open the <code>day${dayNumber}_letter.mp3</code> attachment to hear this letter read aloud in natural German. Listen and repeat to improve your accent!
+                </p>
+              </div>
+
+              <!-- English Translation -->
+              <h2 style="color: #475569; font-size: 18px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 14px;">🇬🇧 English Translation</h2>
+              <div style="background-color: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 20px; margin-bottom: 24px; white-space: pre-line; font-size: 14px; line-height: 1.7; color: #334155; font-style: italic;">${letter.letterEnglish}</div>
+
+              <!-- Key Phrases -->
+              <h2 style="color: #1e3a8a; font-size: 18px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 14px;">🔑 Key Phrases to Memorise</h2>
+              <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 24px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                  <thead>
+                    <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                      <th style="padding: 10px 12px; color: #475569; font-weight: 700; text-align: left;">Phrase (DE)</th>
+                      <th style="padding: 10px 12px; color: #475569; font-weight: 700; text-align: left;">Meaning (EN)</th>
+                      <th style="padding: 10px 12px; color: #475569; font-weight: 700; text-align: left;">When to use</th>
+                    </tr>
+                  </thead>
+                  <tbody>${keyPhrasesRows}</tbody>
+                </table>
+              </div>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 20px 25px; text-align: center; font-size: 12px; color: #64748b;">
+              <p style="margin: 0 0 4px 0; font-weight: 600; color: #475569;">Daily German B1 Tutor — Letter Practice</p>
+              <p style="margin: 0;">Sie erhalten diese Email, um sich täglich auf Ihre telc B1 Deutschprüfung vorzubereiten.</p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+/**
+ * Plain-text version of the letter email.
+ */
+export function generateLetterTextEmail(letter: DailyLetter, dayNumber: number): string {
+  const keyPhrasesText = letter.keyPhrases
+    .map((kp, i) => `${i + 1}. "${kp.phrase}"\n   → ${kp.meaning}\n   When: ${kp.usage}`)
+    .join('\n\n');
+
+  return `
+=========================================
+TAG ${dayNumber} • GERMAN LETTER PRACTICE
+${letter.topic.toUpperCase()}
+Register: ${letter.register.toUpperCase()}
+=========================================
+
+📌 REGISTER NOTE:
+${letter.registerTip}
+
+-----------------------------------------
+🇩🇪 DER BRIEF (GERMAN LETTER):
+-----------------------------------------
+${letter.letterGerman}
+
+-----------------------------------------
+🇬🇧 ENGLISH TRANSLATION:
+-----------------------------------------
+${letter.letterEnglish}
+
+-----------------------------------------
+🔑 KEY PHRASES TO MEMORISE:
+-----------------------------------------
+${keyPhrasesText}
+
+-----------------------------------------
+Daily German B1 Tutor — Letter Practice
+Sie erhalten diese Email, um sich täglich auf Ihre telc B1 Deutschprüfung vorzubereiten.
 `;
 }

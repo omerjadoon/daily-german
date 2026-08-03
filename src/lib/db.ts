@@ -41,6 +41,17 @@ try {
     idle_timeout: 10,
     connect_timeout: 10,
   });
+  // Auto-initialize daily_letters table to prevent SQL errors in serverless execution
+  sqlClient`
+    CREATE TABLE IF NOT EXISTS daily_letters (
+      id bigserial PRIMARY KEY,
+      day_number integer NOT NULL UNIQUE,
+      topic text NOT NULL,
+      letter_json jsonb NOT NULL,
+      created_at timestamptz DEFAULT now(),
+      updated_at timestamptz DEFAULT now()
+    );
+  `.catch(err => console.error("Failed to auto-create daily_letters table:", err));
 } catch (error) {
   console.error("Failed to initialize database client");
   throw error;

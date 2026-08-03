@@ -3,11 +3,12 @@ import { getCurrentDayNumber } from "./dates";
 import { getTopicForDay, generateFallbackLesson } from "./curriculum";
 import { getDifficultyProfile } from "./progression";
 import { getReviewWords, calculateNextReviewDate } from "./reviewWords";
-import { validateLesson, Lesson, VocabularyItem } from "./validation";
+import { validateLesson, Lesson, VocabularyItem, DailyLetter, validateDailyLetter } from "./validation";
 import { generateContent } from "./groq";
-import { buildLessonPrompt, buildEnrichmentPrompt } from "./lessonPrompt";
-import { generateHtmlEmail, generateTextEmail } from "./emailTemplate";
+import { buildLessonPrompt, buildEnrichmentPrompt, buildWordBankPrompt, buildLetterPrompt } from "./lessonPrompt";
+import { generateHtmlEmail, generateTextEmail, generateLetterHtmlEmail, generateLetterTextEmail } from "./emailTemplate";
 import { sendTutorEmail } from "./resend";
+import { getGermanTtsBase64 } from "./ttsService";
 
 const defaultRecipient = process.env.EMAIL_TO || "omerkhanjadoons@gmail.com";
 
@@ -235,6 +236,110 @@ async function getEnrichmentForLesson(lesson: Lesson, dayNumber: number): Promis
 }
 
 /**
+ * Makes a third LLM call dedicated to generating the word bank:
+ * 10 nouns (with der/die/das), 10 verbs, and 10 adjectives — unique per day.
+ * Merges the result into the lesson. Never throws — fails silently.
+ */
+async function getWordBankForLesson(lesson: Lesson, dayNumber: number): Promise<Lesson> {
+  try {
+    await logEvent("word_bank_generation_started", dayNumber, "Generating word bank via dedicated LLM call.");
+
+    const { systemPrompt, userPrompt } = buildWordBankPrompt({
+      dayNumber,
+      level: lesson.level,
+      topic: lesson.topic,
+    });
+
+    const wordBankRaw = await generateContent({
+      systemPrompt,
+      userPrompt,
+      jsonMode: true,
+      temperature: 0.4,
+    });
+
+    const wordBank = JSON.parse(wordBankRaw);
+
+    // Basic structural guard before merging
+    if (
+      Array.isArray(wordBank.nouns) && wordBank.nouns.length === 10 &&
+      Array.isArray(wordBank.verbs) && wordBank.verbs.length === 10 &&
+      Array.isArray(wordBank.adjectives) && wordBank.adjectives.length === 10
+    ) {
+      lesson = { ...lesson, wordBank };
+      await logEvent("word_bank_generation_succeeded", dayNumber, "Word bank merged into lesson successfully.");
+    } else {
+      await logEvent("word_bank_generation_failed", dayNumber, "Word bank response did not match expected shape (10/10/10).", wordBank);
+    }
+  } catch (err: any) {
+    await logEvent("word_bank_generation_failed", dayNumber, `Word bank generation failed (non-fatal): ${err.message || err}`);
+  }
+
+  return lesson;
+}
+
+/**
+ * Makes a fourth LLM call to generate today's German letter practice email.
+ * Generates a 150-200 word German letter + English translation + key phrases.
+ * Caches the result in the daily_letters table. Never throws — fails silently.
+ */
+async function getLetterForDay(dayNumber: number, level: string): Promise<DailyLetter | null> {
+  try {
+    // Check cache
+    try {
+      const cached = await sql<any[]>`
+        SELECT letter_json FROM daily_letters WHERE day_number = ${dayNumber} LIMIT 1
+      `;
+      if (cached.length > 0) {
+        console.log(`Reusing cached letter for day ${dayNumber}.`);
+        return cached[0].letter_json as DailyLetter;
+      }
+    } catch {
+      // Table may not exist yet — continue to generate
+    }
+
+    await logEvent("letter_generation_started", dayNumber, "Generating daily letter via dedicated LLM call.");
+
+    const { systemPrompt, userPrompt, letterTopic } = buildLetterPrompt({ dayNumber, level });
+
+    const letterRaw = await generateContent({
+      systemPrompt,
+      userPrompt,
+      jsonMode: true,
+      temperature: 0.5,
+    });
+
+    const parsed = JSON.parse(letterRaw);
+    const result = validateDailyLetter(parsed);
+
+    if (!result.success) {
+      await logEvent("letter_generation_failed", dayNumber, "Letter failed validation.", result.error.format());
+      return null;
+    }
+
+    const letter = result.data;
+
+    // Persist to daily_letters table (best-effort)
+    try {
+      await sql`
+        INSERT INTO daily_letters (day_number, topic, letter_json)
+        VALUES (${dayNumber}, ${letterTopic}, ${JSON.stringify(letter)})
+        ON CONFLICT (day_number) DO UPDATE SET
+          letter_json = EXCLUDED.letter_json,
+          updated_at = now()
+      `;
+    } catch {
+      // Table may not exist — non-fatal
+    }
+
+    await logEvent("letter_generation_succeeded", dayNumber, `Letter generated: "${letterTopic}"`);
+    return letter;
+  } catch (err: any) {
+    await logEvent("letter_generation_failed", dayNumber, `Letter generation failed (non-fatal): ${err.message || err}`);
+    return null;
+  }
+}
+
+/**
  * Main scheduled service. Resolves today's day number, checks duplicate send logs,
  * generates/fetches lesson, sends email via Resend, and records success logs.
  */
@@ -282,30 +387,83 @@ export async function sendDailyLesson(): Promise<{ alreadySent: boolean; dayNumb
     }
   }
 
-  // 3. Render and deliver email
+  // 2b. Generate word bank: 10 nouns, 10 verbs, 10 adjectives (third LLM call)
+  // Only generate if the lesson doesn't already have a word bank cached
+  if (!lesson.wordBank) {
+    lesson = await getWordBankForLesson(lesson, dayNumber);
+    // Persist the word bank back to the database
+    try {
+      await sql`
+        UPDATE generated_lessons
+        SET lesson_json = ${JSON.stringify(lesson)}, updated_at = now()
+        WHERE day_number = ${dayNumber}
+      `;
+    } catch (dbErr) {
+      console.error("Failed to persist word bank lesson to DB:", dbErr);
+    }
+  }
+
+  // 3. Render and deliver Email 1: Main lesson
   try {
     const html = generateHtmlEmail(lesson);
     const text = generateTextEmail(lesson);
     const subject = lesson.subject;
+
+    // Generate TTS audio for the German story in parallel with email rendering (non-blocking)
+    const storyAudioBase64 = await getGermanTtsBase64(lesson.storyGerman).catch(() => null);
 
     const messageId = await sendTutorEmail({
       to: emailTo,
       subject,
       html,
       text,
+      attachments: storyAudioBase64
+        ? [{ content: storyAudioBase64, filename: `day${dayNumber}_story.mp3`, contentType: "audio/mpeg" }]
+        : [],
     });
 
-    // 4. Save delivery record
-    await sql`
-      INSERT INTO sent_lessons (day_number, email_to, subject, topic, level, provider_message_id, status)
-      VALUES (${dayNumber}, ${emailTo}, ${subject}, ${lesson.topic}, ${lesson.level}, ${messageId}, 'sent')
-      ON CONFLICT (day_number, email_to) DO UPDATE SET
-        provider_message_id = EXCLUDED.provider_message_id,
-        status = 'sent',
-        sent_at = now()
-    `;
+    // 4. Save delivery record for main lesson (best-effort resilience)
+    try {
+      await sql`
+        INSERT INTO sent_lessons (day_number, email_to, subject, topic, level, provider_message_id, status)
+        VALUES (${dayNumber}, ${emailTo}, ${subject}, ${lesson.topic}, ${lesson.level}, ${messageId}, 'sent')
+        ON CONFLICT (day_number, email_to) DO UPDATE SET
+          provider_message_id = EXCLUDED.provider_message_id,
+          status = 'sent',
+          sent_at = now()
+      `;
+      await logEvent("email_send_succeeded", dayNumber, `Main lesson email dispatched to ${emailTo}. Audio: ${storyAudioBase64 ? 'attached' : 'unavailable'}. Provider ID: ${messageId}`);
+    } catch (dbErr: any) {
+      console.error("Failed to write to sent_lessons table:", dbErr);
+      await logEvent("email_send_succeeded_db_failed", dayNumber, `Main lesson email dispatched to ${emailTo} but DB logging failed: ${dbErr.message || dbErr}`);
+    }
 
-    await logEvent("email_send_succeeded", dayNumber, `Email dispatched successfully to ${emailTo}. Provider ID: ${messageId}`);
+    // 5. Generate & send Email 2: Daily Letter Practice with audio (non-blocking — fails silently)
+    try {
+      const letter = await getLetterForDay(dayNumber, lesson.level);
+      if (letter) {
+        const letterHtml = generateLetterHtmlEmail(letter, dayNumber);
+        const letterText = generateLetterTextEmail(letter, dayNumber);
+        const letterSubject = `Day ${dayNumber}: German Letter Practice — ${letter.register === "formal" ? "📝 Formal" : "💬 Informal"} | ${letter.topic.slice(0, 50)}`;
+
+        // Generate TTS for letter text in parallel
+        const letterAudioBase64 = await getGermanTtsBase64(letter.letterGerman).catch(() => null);
+
+        const letterMsgId = await sendTutorEmail({
+          to: emailTo,
+          subject: letterSubject,
+          html: letterHtml,
+          text: letterText,
+          attachments: letterAudioBase64
+            ? [{ content: letterAudioBase64, filename: `day${dayNumber}_letter.mp3`, contentType: "audio/mpeg" }]
+            : [],
+        });
+        await logEvent("letter_email_sent", dayNumber, `Letter email dispatched to ${emailTo}. Audio: ${letterAudioBase64 ? 'attached' : 'unavailable'}. Provider ID: ${letterMsgId}`);
+      }
+    } catch (letterErr: any) {
+      await logEvent("letter_email_failed", dayNumber, `Letter email failed (non-fatal): ${letterErr.message || letterErr}`);
+    }
+
     return { alreadySent: false, dayNumber, lesson, messageId };
   } catch (sendErr: any) {
     await logEvent("email_send_failed", dayNumber, `Delivery failed to ${emailTo}. Error: ${sendErr.message || sendErr}`);
@@ -325,31 +483,95 @@ export async function sendTodayManual(): Promise<{ alreadySent: boolean; dayNumb
  * Does not check nor log under 'sent' status (status is 'test_sent'), preserving cron progression.
  */
 export async function sendTestLesson(dayNumber: number, recipient = defaultRecipient): Promise<{ dayNumber: number; lesson: Lesson; messageId: string }> {
-  const lesson = await getOrGenerateLesson(dayNumber);
+  let lesson = await getOrGenerateLesson(dayNumber);
+
+  // 2a. Enrich lesson with pronunciation guide and tips (second LLM call)
+  if (!lesson.tipsAndTricks || lesson.tipsAndTricks.length === 0) {
+    lesson = await getEnrichmentForLesson(lesson, dayNumber);
+    try {
+      await sql`
+        UPDATE generated_lessons
+        SET lesson_json = ${JSON.stringify(lesson)}, updated_at = now()
+        WHERE day_number = ${dayNumber}
+      `;
+    } catch (dbErr) {
+      console.error("Failed to persist enriched lesson to DB:", dbErr);
+    }
+  }
+
+  // 2b. Generate word bank: 10 nouns, 10 verbs, 10 adjectives (third LLM call)
+  if (!lesson.wordBank) {
+    lesson = await getWordBankForLesson(lesson, dayNumber);
+    try {
+      await sql`
+        UPDATE generated_lessons
+        SET lesson_json = ${JSON.stringify(lesson)}, updated_at = now()
+        WHERE day_number = ${dayNumber}
+      `;
+    } catch (dbErr) {
+      console.error("Failed to persist word bank lesson to DB:", dbErr);
+    }
+  }
 
   try {
     const html = generateHtmlEmail(lesson);
     const text = generateTextEmail(lesson);
     const subject = `[TEST] ${lesson.subject}`;
 
+    // Generate TTS audio for the German story (non-blocking)
+    const storyAudioBase64 = await getGermanTtsBase64(lesson.storyGerman).catch(() => null);
+
     const messageId = await sendTutorEmail({
       to: recipient,
       subject,
       html,
       text,
+      attachments: storyAudioBase64
+        ? [{ content: storyAudioBase64, filename: `day${dayNumber}_story.mp3`, contentType: "audio/mpeg" }]
+        : [],
     });
 
-    // Log the test dispatch with test_sent status, so it won't block scheduled cron execution
-    await sql`
-      INSERT INTO sent_lessons (day_number, email_to, subject, topic, level, provider_message_id, status)
-      VALUES (${dayNumber}, ${recipient}, ${subject}, ${lesson.topic}, ${lesson.level}, ${messageId}, 'test_sent')
-      ON CONFLICT (day_number, email_to) DO UPDATE SET
-        provider_message_id = EXCLUDED.provider_message_id,
-        status = 'test_sent',
-        sent_at = now()
-    `;
+    // Log the test dispatch with test_sent status (best-effort resilience)
+    try {
+      await sql`
+        INSERT INTO sent_lessons (day_number, email_to, subject, topic, level, provider_message_id, status)
+        VALUES (${dayNumber}, ${recipient}, ${subject}, ${lesson.topic}, ${lesson.level}, ${messageId}, 'test_sent')
+        ON CONFLICT (day_number, email_to) DO UPDATE SET
+          provider_message_id = EXCLUDED.provider_message_id,
+          status = 'test_sent',
+          sent_at = now()
+      `;
+      await logEvent("email_send_succeeded", dayNumber, `Test email dispatched to ${recipient}. Audio: ${storyAudioBase64 ? 'attached' : 'unavailable'}.`);
+    } catch (dbErr: any) {
+      console.error("Failed to write test send to sent_lessons table:", dbErr);
+      await logEvent("email_send_succeeded_db_failed", dayNumber, `Test email dispatched to ${recipient} but DB logging failed: ${dbErr.message || dbErr}`);
+    }
 
-    await logEvent("email_send_succeeded", dayNumber, `Test email dispatched to ${recipient}.`);
+    // Generate & send Email 2: Daily Letter Practice with audio (non-blocking — fails silently)
+    try {
+      const letter = await getLetterForDay(dayNumber, lesson.level);
+      if (letter) {
+        const letterHtml = generateLetterHtmlEmail(letter, dayNumber);
+        const letterText = generateLetterTextEmail(letter, dayNumber);
+        const letterSubject = `[TEST] Day ${dayNumber}: German Letter Practice — ${letter.register === "formal" ? "📝 Formal" : "💬 Informal"} | ${letter.topic.slice(0, 50)}`;
+
+        const letterAudioBase64 = await getGermanTtsBase64(letter.letterGerman).catch(() => null);
+
+        const letterMsgId = await sendTutorEmail({
+          to: recipient,
+          subject: letterSubject,
+          html: letterHtml,
+          text: letterText,
+          attachments: letterAudioBase64
+            ? [{ content: letterAudioBase64, filename: `day${dayNumber}_letter.mp3`, contentType: "audio/mpeg" }]
+            : [],
+        });
+        await logEvent("letter_email_sent", dayNumber, `Test letter email dispatched to ${recipient}. Audio: ${letterAudioBase64 ? 'attached' : 'unavailable'}. Provider ID: ${letterMsgId}`);
+      }
+    } catch (letterErr: any) {
+      await logEvent("letter_email_failed", dayNumber, `Test letter email failed (non-fatal): ${letterErr.message || letterErr}`);
+    }
+
     return { dayNumber, lesson, messageId };
   } catch (error: any) {
     await logEvent("email_send_failed", dayNumber, `Test delivery failed to ${recipient}. Error: ${error.message || error}`);

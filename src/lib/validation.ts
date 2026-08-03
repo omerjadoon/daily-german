@@ -1,5 +1,49 @@
 import { z } from "zod";
 
+// Validator for a single noun in the word bank (includes article)
+export const WordBankNounSchema = z.object({
+  german: z.string().min(1, "German noun cannot be empty"),
+  article: z.enum(["der", "die", "das"], {
+    errorMap: () => ({ message: "Noun article must be 'der', 'die', or 'das'" }),
+  }),
+  plural: z.string().min(1, "Plural form cannot be empty"),
+  english: z.string().min(1, "English meaning cannot be empty"),
+  example: z.string().min(1, "Example sentence cannot be empty"),
+  opposite: z.object({
+    german: z.string(),
+    english: z.string(),
+  }).nullable().optional(),
+});
+
+// Validator for a single verb in the word bank
+export const WordBankVerbSchema = z.object({
+  german: z.string().min(1, "German verb cannot be empty"),
+  english: z.string().min(1, "English meaning cannot be empty"),
+  example: z.string().min(1, "Example sentence cannot be empty"),
+  opposite: z.object({
+    german: z.string(),
+    english: z.string(),
+  }).nullable().optional(),
+});
+
+// Validator for a single adjective in the word bank (opposite required)
+export const WordBankAdjectiveSchema = z.object({
+  german: z.string().min(1, "German adjective cannot be empty"),
+  english: z.string().min(1, "English meaning cannot be empty"),
+  example: z.string().min(1, "Example sentence cannot be empty"),
+  opposite: z.object({
+    german: z.string(),
+    english: z.string(),
+  }).nullable().optional(), // nullable in case LLM misses it, but we always request it
+});
+
+// Validator for the entire word bank block
+export const WordBankSchema = z.object({
+  nouns: z.array(WordBankNounSchema).length(10, "Word bank must contain exactly 10 nouns"),
+  verbs: z.array(WordBankVerbSchema).length(10, "Word bank must contain exactly 10 verbs"),
+  adjectives: z.array(WordBankAdjectiveSchema).length(10, "Word bank must contain exactly 10 adjectives"),
+});
+
 // Validator for a single vocabulary item
 export const VocabularyItemSchema = z.object({
   german: z.string().min(1, "German term cannot be empty"),
@@ -97,6 +141,8 @@ export const LessonSchema = z.object({
   pronunciationGuide: z.array(PronunciationGuideItemSchema).optional(),
   tipsAndTricks: z.array(TipAndTrickSchema).optional(),
   pronunciationSection: PronunciationSectionSchema.optional(),
+  // Word bank: 10 nouns, 10 verbs, 10 adjectives — unique per day
+  wordBank: WordBankSchema.optional(),
 });
 
 export type VocabularyItem = z.infer<typeof VocabularyItemSchema>;
@@ -108,7 +154,34 @@ export type ClosingStory = z.infer<typeof ClosingStorySchema>;
 export type PronunciationGuideItem = z.infer<typeof PronunciationGuideItemSchema>;
 export type TipAndTrick = z.infer<typeof TipAndTrickSchema>;
 export type PronunciationSection = z.infer<typeof PronunciationSectionSchema>;
+export type WordBankNoun = z.infer<typeof WordBankNounSchema>;
+export type WordBankVerb = z.infer<typeof WordBankVerbSchema>;
+export type WordBankAdjective = z.infer<typeof WordBankAdjectiveSchema>;
+export type WordBank = z.infer<typeof WordBankSchema>;
 export type Lesson = z.infer<typeof LessonSchema>;
+
+// --- Daily Letter Schema ---
+export const KeyPhraseSchema = z.object({
+  phrase: z.string().min(1),
+  meaning: z.string().min(1),
+  usage: z.string().min(1),
+});
+
+export const DailyLetterSchema = z.object({
+  topic: z.string().min(1, "Letter topic cannot be empty"),
+  register: z.enum(["formal", "informal"]),
+  letterGerman: z.string().min(1, "German letter text cannot be empty"),
+  letterEnglish: z.string().min(1, "English translation cannot be empty"),
+  keyPhrases: z.array(KeyPhraseSchema).min(5).max(8),
+  registerTip: z.string().min(1, "Register tip cannot be empty"),
+});
+
+export type KeyPhrase = z.infer<typeof KeyPhraseSchema>;
+export type DailyLetter = z.infer<typeof DailyLetterSchema>;
+
+export function validateDailyLetter(data: unknown) {
+  return DailyLetterSchema.safeParse(data);
+}
 
 /**
  * Validate lesson object and return validation result
