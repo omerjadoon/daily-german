@@ -1,20 +1,24 @@
 /**
  * ttsService.ts
  *
- * German text-to-speech using Google Translate (tw-ob client endpoint).
- * Free, no API key needed, high reliability for German pronunciation.
- *
- * Usage:
- *   const mp3Base64 = await getGermanTtsBase64("Guten Morgen! Wie geht es Ihnen?");
+ * German text-to-speech engine using Google Translate (tw-ob client).
+ * Features multi-domain fallback, text clipping (350 chars max for fast email delivery),
+ * and strict error reporting.
  */
 
-const TTS_CHUNK_MAX = 180; // Safe URL length per chunk
+const TTS_CHUNK_MAX = 180;
+
+const GOOGLE_DOMAINS = [
+  "translate.google.com",
+  "translate.google.de",
+  "translate.google.co.uk",
+];
 
 /**
- * Splits text into chunks <= TTS_CHUNK_MAX characters, breaking cleanly at sentence/punctuation boundaries.
+ * Splits text into clean chunks <= TTS_CHUNK_MAX characters on sentence/word boundaries.
  */
 function splitIntoChunks(text: string): string[] {
-  const normalised = text.replace(/\s+/g, " ").trim();
+  const normalised = text.replace(/[\*\_\#]/g, "").replace(/\s+/g, " ").trim();
   const rawSentences = normalised.match(/[^.!?\n]+[.!?]*/g) ?? [normalised];
   const chunks: string[] = [];
   let current = "";
@@ -47,53 +51,65 @@ function splitIntoChunks(text: string): string[] {
 }
 
 /**
- * Fetches one MP3 audio chunk from Google Translate TTS API (tw-ob client).
+ * Fetches a single MP3 chunk from Google Translate TTS with domain fallback.
  */
 async function fetchTtsChunk(text: string, signal?: AbortSignal): Promise<Buffer> {
-  const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=de&client=tw-ob`;
+  let lastError: Error | null = null;
 
-  const response = await fetch(url, {
-    signal,
-    headers: {
-      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      "Referer": "https://translate.google.com/",
-    },
-  });
+  for (const domain of GOOGLE_DOMAINS) {
+    const url = `https://${domain}/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=de&client=tw-ob`;
+    try {
+      const response = await fetch(url, {
+        signal,
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "Referer": `https://${domain}/`,
+        },
+      });
 
-  if (!response.ok) {
-    throw new Error(`Google TTS HTTP ${response.status} for text: "${text.slice(0, 30)}..."`);
+      if (response.ok) {
+        const arrayBuffer = await response.arrayBuffer();
+        const buf = Buffer.from(arrayBuffer);
+        if (buf.length > 500) { // Valid MP3 is > 500 bytes
+          return buf;
+        }
+      }
+      lastError = new Error(`Domain ${domain} returned HTTP ${response.status}`);
+    } catch (err: any) {
+      lastError = err;
+    }
   }
 
-  const arrayBuffer = await response.arrayBuffer();
-  return Buffer.from(arrayBuffer);
+  throw lastError || new Error(`All Google TTS domains failed for chunk: "${text.slice(0, 30)}..."`);
 }
 
 /**
- * Converts German text string into an MP3 Buffer.
- * Returns null on any error so callers fail gracefully without crashing email delivery.
+ * Converts German text into a single MP3 Buffer.
+ * Default maxCharsTotal = 350 ensures small email attachments & ultra-fast <1.5s generation.
  */
 export async function getGermanTtsBuffer(
   text: string,
-  maxCharsTotal = 2000
+  maxCharsTotal = 350
 ): Promise<Buffer | null> {
   try {
     if (!text || text.trim().length === 0) return null;
 
-    const clipped = text.length > maxCharsTotal
-      ? text.slice(0, maxCharsTotal).trimEnd() + "."
-      : text;
+    // Clean markdown formatting & clip length for fast serverless execution
+    const cleaned = text.replace(/[\*\_\#]/g, "").trim();
+    const clipped = cleaned.length > maxCharsTotal
+      ? cleaned.slice(0, maxCharsTotal).trimEnd() + "."
+      : cleaned;
 
     const chunks = splitIntoChunks(clipped);
     if (chunks.length === 0) return null;
 
-    console.log(`[TTS] Synthesising ${chunks.length} chunk(s) via Google Translate (tw-ob).`);
+    console.log(`[TTS] Synthesising ${chunks.length} chunk(s) (${clipped.length} chars) for German audio.`);
 
-    // 5-second abort controller for parallel chunk fetching
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
-      console.warn("[TTS] Fetch timeout reached (5s), aborting chunk fetch.");
+      console.warn("[TTS] Fetch timeout reached (6s), aborting.");
       controller.abort();
-    }, 5000);
+    }, 6000);
 
     try {
       const buffers = await Promise.all(
@@ -102,22 +118,21 @@ export async function getGermanTtsBuffer(
       clearTimeout(timeoutId);
 
       const combined = Buffer.concat(buffers);
-      console.log(`[TTS] German audio generated successfully: ${combined.length} bytes (${(combined.length / 1024).toFixed(1)} KB).`);
+      console.log(`[TTS] Success: ${combined.length} bytes (${(combined.length / 1024).toFixed(1)} KB) audio generated.`);
       return combined;
     } catch (err: any) {
       clearTimeout(timeoutId);
-      console.error("[TTS] Chunk fetch failed (non-fatal):", err?.message || err);
+      console.error("[TTS] Failed fetching audio chunks (non-fatal):", err?.message || err);
       return null;
     }
   } catch (err: any) {
-    console.error("[TTS] Failed to generate audio (non-fatal):", err?.message ?? err);
+    console.error("[TTS] Critical error in getGermanTtsBuffer:", err?.message || err);
     return null;
   }
 }
 
 /**
- * Convenience: returns a base64 string suitable for Resend attachment `content`.
- * Returns null on failure.
+ * Returns base64 encoded MP3 string for email attachment.
  */
 export async function getGermanTtsBase64(text: string): Promise<string | null> {
   const buf = await getGermanTtsBuffer(text);
