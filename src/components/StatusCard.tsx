@@ -182,11 +182,14 @@ export const StatusCard: React.FC<StatusCardProps> = ({
             style={{ width: "100%" }}
           >
             {loading || localLoading ? (
-              <div className="loading-spinner"></div>
+              <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                <span className="loading-spinner" style={{ width: "16px", height: "16px" }}></span>
+                <span>Wird gesendet...</span>
+              </span>
             ) : (
-              <>
-                <Play size={16} /> Heute abschicken
-              </>
+              <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                <Play size={16} /> <span>Heute abschicken</span>
+              </span>
             )}
           </button>
         </div>
@@ -270,7 +273,7 @@ export const StatusCard: React.FC<StatusCardProps> = ({
           }}>
             <AlertCircle size={16} style={{ flexShrink: 0, marginTop: "2px" }} />
             <div>
-              <strong>Fehler:</strong> {actionError || todayError}
+              <strong>Fehler:</strong> <span>{actionError || todayError}</span>
             </div>
           </div>
         )}
@@ -289,7 +292,7 @@ export const StatusCard: React.FC<StatusCardProps> = ({
           }}>
             <CheckCircle2 size={16} style={{ flexShrink: 0, marginTop: "2px" }} />
             <div>
-              <strong>Erfolg:</strong> {actionSuccess || todaySuccess}
+              <strong>Erfolg:</strong> <span>{actionSuccess || todaySuccess}</span>
             </div>
           </div>
         )}
