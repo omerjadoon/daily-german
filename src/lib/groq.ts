@@ -8,9 +8,10 @@ if (!apiKey) {
   console.warn("WARNING: GROQ_API_KEY is not defined in the environment variables.");
 }
 
-// Initializing the Groq Client
+// Initializing the Groq Client with a strict 8-second timeout
 export const groq = new Groq({
   apiKey: apiKey || "dummy-key-for-now",
+  timeout: 8000,
 });
 
 interface GenerateOptions {

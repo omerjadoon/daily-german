@@ -35,8 +35,9 @@ if (connectionString) {
     sqlClient = postgres(connectionString, {
       ssl: "require",
       max: 3,
-      idle_timeout: 10,
-      connect_timeout: 10,
+      idle_timeout: 5,
+      connect_timeout: 3,
+      timeout: 4, // strict query timeout in seconds
     });
     // Auto-initialize daily_letters table to prevent SQL errors in serverless execution
     sqlClient`
