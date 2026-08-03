@@ -1,86 +1,117 @@
 /**
  * ttsService.ts
  *
- * German text-to-speech using ElevenLabs API (primary).
- * ElevenLabs free tier: 10,000 chars/month — sufficient for daily German lessons.
- * Set ELEVENLABS_API_KEY in your Netlify environment variables.
- *
- * If ELEVENLABS_API_KEY is not set, TTS is skipped (returns null silently).
+ * German text-to-speech using StreamElements TTS API (free, no API key).
+ * Uses Amazon Polly "Marlene" — a high-quality German female voice.
+ * StreamElements powers TTS for millions of Twitch streams globally.
  *
  * Usage:
  *   const mp3Buffer = await getGermanTtsBuffer("Guten Morgen! Wie geht es Ihnen?");
  */
 
-const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY || "";
-
-// German-capable ElevenLabs voice (can be overridden via env)
-// Default: "Sarah" — a clear, natural German-capable multilingual voice
-// Browse voices at: https://elevenlabs.io/voice-library
-const ELEVENLABS_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || "EXAVITQu4vr4xnSDxMaL";
-
-// Model: eleven_turbo_v2_5 — fastest multilingual model, supports German natively
-const ELEVENLABS_MODEL = "eleven_turbo_v2_5";
+const TTS_CHUNK_MAX = 200; // StreamElements safe URL length per chunk
+const TTS_VOICE = "Marlene";   // German female (Amazon Polly via StreamElements)
 
 /**
- * Converts a German text string into an MP3 Buffer using ElevenLabs API.
- * Returns null on any error so callers can fail gracefully.
- *
- * @param text   German text to synthesise (any length, capped at 4500 chars)
+ * Splits text into chunks ≤ TTS_CHUNK_MAX characters, breaking at sentence/word boundaries.
  */
-export async function getGermanTtsBuffer(text: string): Promise<Buffer | null> {
-  if (!ELEVENLABS_API_KEY) {
-    console.warn("[TTS] ELEVENLABS_API_KEY is not set. Skipping audio generation.");
-    return null;
+function splitIntoChunks(text: string): string[] {
+  const normalised = text.replace(/\s+/g, " ").trim();
+  const rawSentences = normalised.match(/[^.!?\n]+[.!?]*/g) ?? [normalised];
+  const chunks: string[] = [];
+  let current = "";
+
+  for (const sentence of rawSentences) {
+    const s = sentence.trim();
+    if (!s) continue;
+    if (current.length + s.length + 1 <= TTS_CHUNK_MAX) {
+      current = current ? `${current} ${s}` : s;
+    } else {
+      if (current) chunks.push(current);
+      if (s.length <= TTS_CHUNK_MAX) {
+        current = s;
+      } else {
+        const words = s.split(" ");
+        current = "";
+        for (const word of words) {
+          if (current.length + word.length + 1 <= TTS_CHUNK_MAX) {
+            current = current ? `${current} ${word}` : word;
+          } else {
+            if (current) chunks.push(current);
+            current = word;
+          }
+        }
+      }
+    }
+  }
+  if (current) chunks.push(current);
+  return chunks;
+}
+
+/**
+ * Fetches one MP3 chunk from StreamElements TTS.
+ */
+async function fetchTtsChunk(text: string, signal?: AbortSignal): Promise<Buffer> {
+  const url = `https://api.streamelements.com/kappa/v2/speech?voice=${TTS_VOICE}&text=${encodeURIComponent(text)}`;
+
+  const response = await fetch(url, {
+    signal,
+    headers: {
+      "User-Agent": "Mozilla/5.0 (compatible; DailyGermanBot/1.0)",
+      "Accept": "audio/mpeg, */*",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`StreamElements TTS HTTP ${response.status} for: "${text.slice(0, 40)}..."`);
   }
 
-  if (!text || text.trim().length === 0) return null;
+  const arrayBuffer = await response.arrayBuffer();
+  return Buffer.from(arrayBuffer);
+}
 
-  // Normalise whitespace and cap length to stay within free tier limits
-  const normalised = text.replace(/\s+/g, " ").trim();
-  const clipped = normalised.length > 4500 ? normalised.slice(0, 4500).trimEnd() + "." : normalised;
-
-  const url = `https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE_ID}`;
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => {
-    console.warn("[TTS] ElevenLabs request timed out after 8s.");
-    controller.abort();
-  }, 8000);
-
+/**
+ * Converts a German text string into a single MP3 Buffer using StreamElements TTS.
+ * Returns null on any error so callers can fail gracefully.
+ */
+export async function getGermanTtsBuffer(
+  text: string,
+  maxCharsTotal = 2000
+): Promise<Buffer | null> {
   try {
-    console.log(`[TTS] Requesting ElevenLabs synthesis for ${clipped.length} chars of German text.`);
+    if (!text || text.trim().length === 0) return null;
 
-    const response = await fetch(url, {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        "Accept": "audio/mpeg",
-        "Content-Type": "application/json",
-        "xi-api-key": ELEVENLABS_API_KEY,
-      },
-      body: JSON.stringify({
-        text: clipped,
-        model_id: ELEVENLABS_MODEL,
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
-        },
-      }),
-    });
+    const clipped = text.length > maxCharsTotal
+      ? text.slice(0, maxCharsTotal).trimEnd() + "."
+      : text;
 
-    clearTimeout(timeoutId);
+    const chunks = splitIntoChunks(clipped);
+    if (chunks.length === 0) return null;
 
-    if (!response.ok) {
-      const errBody = await response.text().catch(() => "");
-      throw new Error(`ElevenLabs TTS HTTP ${response.status}: ${errBody.slice(0, 200)}`);
+    console.log(`[TTS] Synthesising ${chunks.length} chunk(s) via StreamElements (voice: ${TTS_VOICE}).`);
+
+    // Shared 7-second abort for all parallel chunk fetches
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      console.warn("[TTS] Fetch timeout reached (7s), aborting.");
+      controller.abort();
+    }, 7000);
+
+    try {
+      const buffers = await Promise.all(
+        chunks.map(chunk => fetchTtsChunk(chunk, controller.signal))
+      );
+      clearTimeout(timeoutId);
+
+      const combined = Buffer.concat(buffers);
+      console.log(`[TTS] Audio generated: ${combined.length} bytes (${(combined.length / 1024).toFixed(1)} KB).`);
+      return combined;
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      console.error("[TTS] Chunk fetch failed (non-fatal):", err?.message || err);
+      return null;
     }
-
-    const arrayBuffer = await response.arrayBuffer();
-    const buf = Buffer.from(arrayBuffer);
-    console.log(`[TTS] Audio generated: ${buf.length} bytes (${(buf.length / 1024).toFixed(1)} KB).`);
-    return buf;
   } catch (err: any) {
-    clearTimeout(timeoutId);
     console.error("[TTS] Failed to generate audio (non-fatal):", err?.message ?? err);
     return null;
   }
