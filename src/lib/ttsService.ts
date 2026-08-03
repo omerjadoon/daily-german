@@ -1,19 +1,17 @@
 /**
  * ttsService.ts
  *
- * German text-to-speech using StreamElements TTS API (free, no API key).
- * Uses Amazon Polly "Marlene" — a high-quality German female voice.
- * StreamElements powers TTS for millions of Twitch streams globally.
+ * German text-to-speech using Google Translate (tw-ob client endpoint).
+ * Free, no API key needed, high reliability for German pronunciation.
  *
  * Usage:
- *   const mp3Buffer = await getGermanTtsBuffer("Guten Morgen! Wie geht es Ihnen?");
+ *   const mp3Base64 = await getGermanTtsBase64("Guten Morgen! Wie geht es Ihnen?");
  */
 
-const TTS_CHUNK_MAX = 200; // StreamElements safe URL length per chunk
-const TTS_VOICE = "Marlene";   // German female (Amazon Polly via StreamElements)
+const TTS_CHUNK_MAX = 180; // Safe URL length per chunk
 
 /**
- * Splits text into chunks ≤ TTS_CHUNK_MAX characters, breaking at sentence/word boundaries.
+ * Splits text into chunks <= TTS_CHUNK_MAX characters, breaking cleanly at sentence/punctuation boundaries.
  */
 function splitIntoChunks(text: string): string[] {
   const normalised = text.replace(/\s+/g, " ").trim();
@@ -49,21 +47,21 @@ function splitIntoChunks(text: string): string[] {
 }
 
 /**
- * Fetches one MP3 chunk from StreamElements TTS.
+ * Fetches one MP3 audio chunk from Google Translate TTS API (tw-ob client).
  */
 async function fetchTtsChunk(text: string, signal?: AbortSignal): Promise<Buffer> {
-  const url = `https://api.streamelements.com/kappa/v2/speech?voice=${TTS_VOICE}&text=${encodeURIComponent(text)}`;
+  const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=de&client=tw-ob`;
 
   const response = await fetch(url, {
     signal,
     headers: {
-      "User-Agent": "Mozilla/5.0 (compatible; DailyGermanBot/1.0)",
-      "Accept": "audio/mpeg, */*",
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Referer": "https://translate.google.com/",
     },
   });
 
   if (!response.ok) {
-    throw new Error(`StreamElements TTS HTTP ${response.status} for: "${text.slice(0, 40)}..."`);
+    throw new Error(`Google TTS HTTP ${response.status} for text: "${text.slice(0, 30)}..."`);
   }
 
   const arrayBuffer = await response.arrayBuffer();
@@ -71,8 +69,8 @@ async function fetchTtsChunk(text: string, signal?: AbortSignal): Promise<Buffer
 }
 
 /**
- * Converts a German text string into a single MP3 Buffer using StreamElements TTS.
- * Returns null on any error so callers can fail gracefully.
+ * Converts German text string into an MP3 Buffer.
+ * Returns null on any error so callers fail gracefully without crashing email delivery.
  */
 export async function getGermanTtsBuffer(
   text: string,
@@ -88,14 +86,14 @@ export async function getGermanTtsBuffer(
     const chunks = splitIntoChunks(clipped);
     if (chunks.length === 0) return null;
 
-    console.log(`[TTS] Synthesising ${chunks.length} chunk(s) via StreamElements (voice: ${TTS_VOICE}).`);
+    console.log(`[TTS] Synthesising ${chunks.length} chunk(s) via Google Translate (tw-ob).`);
 
-    // Shared 7-second abort for all parallel chunk fetches
+    // 5-second abort controller for parallel chunk fetching
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
-      console.warn("[TTS] Fetch timeout reached (7s), aborting.");
+      console.warn("[TTS] Fetch timeout reached (5s), aborting chunk fetch.");
       controller.abort();
-    }, 7000);
+    }, 5000);
 
     try {
       const buffers = await Promise.all(
@@ -104,7 +102,7 @@ export async function getGermanTtsBuffer(
       clearTimeout(timeoutId);
 
       const combined = Buffer.concat(buffers);
-      console.log(`[TTS] Audio generated: ${combined.length} bytes (${(combined.length / 1024).toFixed(1)} KB).`);
+      console.log(`[TTS] German audio generated successfully: ${combined.length} bytes (${(combined.length / 1024).toFixed(1)} KB).`);
       return combined;
     } catch (err: any) {
       clearTimeout(timeoutId);

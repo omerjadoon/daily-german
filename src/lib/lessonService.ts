@@ -470,7 +470,7 @@ export async function sendDailyLesson(): Promise<{ alreadySent: boolean; dayNumb
  * If no cached lesson exists, returns an error asking the user to wait for the
  * automatic daily generation (scheduled cron at 06:00).
  */
-export async function sendTodayManual(): Promise<{ alreadySent: boolean; dayNumber: number; lesson?: Lesson; messageId?: string }> {
+export async function sendTodayManual(): Promise<{ alreadySent: boolean; dayNumber: number; lesson?: Lesson; messageId?: string; audioAttached?: boolean }> {
   const dayNumber = getCurrentDayNumber();
   const emailTo = defaultRecipient;
 
@@ -547,6 +547,8 @@ export async function sendTodayManual(): Promise<{ alreadySent: boolean; dayNumb
   const subject = lesson.subject;
 
   const storyAudioBase64 = await getGermanTtsBase64(lesson.storyGerman).catch(() => null);
+  const audioAttached = !!storyAudioBase64;
+  console.log(`[sendTodayManual] TTS audio status: ${audioAttached ? "Audio attached" : "No audio (TTS returned null)"}`);
 
   const messageId = await sendTutorEmail({
     to: emailTo,
@@ -568,9 +570,9 @@ export async function sendTodayManual(): Promise<{ alreadySent: boolean; dayNumb
       sent_at = now()
   `.catch((err: any) => console.error("Failed to record sent lesson:", err));
 
-  logEvent("email_send_succeeded", dayNumber, `Manual send dispatched to ${emailTo}. Provider ID: ${messageId}`);
+  logEvent("email_send_succeeded", dayNumber, `Manual send dispatched to ${emailTo}. Audio: ${audioAttached ? "attached" : "missing"}. Provider ID: ${messageId}`);
 
-  return { alreadySent: false, dayNumber, lesson, messageId };
+  return { alreadySent: false, dayNumber, lesson, messageId, audioAttached };
 }
 
 /**
