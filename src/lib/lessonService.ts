@@ -148,49 +148,32 @@ Respond ONLY with a valid, clean JSON object matching the requested Lesson inter
     logEvent("lesson_generation_succeeded", dayNumber, "Lesson successfully constructed and validated.");
   }
 
-  // 7. Save generated lesson to Supabase — fire-and-forget to avoid blocking
-  (async () => {
-    try {
-      // Insert curriculum topic just in case it wasn't seeded
-      const dbTopic = await sql<any[]>`
-        SELECT id FROM curriculum_topics WHERE day_number = ${dayNumber} LIMIT 1
-      `;
-      let topicId: number | null = dbTopic.length > 0 ? dbTopic[0].id : null;
+  // 7. Save generated lesson to Supabase — MUST be awaited so the cache persists before Lambda exits
+  try {
+    await sql`
+      INSERT INTO generated_lessons (day_number, lesson_json, model)
+      VALUES (${dayNumber}, ${JSON.stringify(finalLesson)}, ${process.env.GROQ_MODEL || "llama-3.3-70b-versatile"})
+      ON CONFLICT (day_number) DO UPDATE SET
+        lesson_json = EXCLUDED.lesson_json,
+        model = EXCLUDED.model,
+        updated_at = now()
+    `;
+  } catch (dbErr) {
+    console.error("Failed to cache lesson in DB:", dbErr);
+  }
 
-      if (!topicId) {
-        const insertedTopic = await sql<any[]>`
-          INSERT INTO curriculum_topics (day_number, level, topic, scenario, grammar_focus, vocabulary_theme, telc_skill)
-          VALUES (${dayNumber}, ${topic.level}, ${topic.topic}, ${topic.scenario}, ${topic.grammarFocus}, ${topic.vocabularyTheme}, ${topic.telcSkill})
-          RETURNING id
-        `;
-        topicId = insertedTopic[0]?.id || null;
-      }
-
-      await sql`
-        INSERT INTO generated_lessons (day_number, topic_id, lesson_json, model)
-        VALUES (${dayNumber}, ${topicId}, ${JSON.stringify(finalLesson)}, ${process.env.GROQ_MODEL || "llama-3.3-70b-versatile"})
-        ON CONFLICT (day_number) DO UPDATE SET
-          lesson_json = EXCLUDED.lesson_json,
-          model = EXCLUDED.model,
-          updated_at = now()
-      `;
-
-      // 8. Extract and save new vocabulary items — non-blocking batch
-      for (const v of finalLesson!.vocabulary) {
-        const nextReview = calculateNextReviewDate(0);
-        sql`
-          INSERT INTO vocabulary_items (
-            day_number, german, article, plural, english, example_german, next_review_at
-          ) VALUES (
-            ${dayNumber}, ${v.german}, ${v.article}, ${v.plural || ""}, ${v.english}, ${v.exampleGerman}, ${nextReview}
-          )
-          ON CONFLICT DO NOTHING
-        `.catch(() => { /* non-fatal */ });
-      }
-    } catch (dbErr) {
-      console.error("Failed to commit generated lesson details to Supabase database:", dbErr);
-    }
-  })();
+  // 8. Vocabulary items — fire-and-forget (non-critical, Lambda may exit before these complete)
+  for (const v of finalLesson!.vocabulary) {
+    const nextReview = calculateNextReviewDate(0);
+    sql`
+      INSERT INTO vocabulary_items (
+        day_number, german, article, plural, english, example_german, next_review_at
+      ) VALUES (
+        ${dayNumber}, ${v.german}, ${v.article}, ${v.plural || ""}, ${v.english}, ${v.exampleGerman}, ${nextReview}
+      )
+      ON CONFLICT DO NOTHING
+    `.catch(() => { /* non-fatal */ });
+  }
 
   return finalLesson;
 }
@@ -544,12 +527,16 @@ export async function sendTodayManual(): Promise<{ alreadySent: boolean; dayNumb
     } catch {
       lesson = generateFallbackLesson(dayNumber, topic, []);
     }
-    // Cache it non-blocking so next send is instant
-    sql`
-      INSERT INTO generated_lessons (day_number, lesson_json, model)
-      VALUES (${dayNumber}, ${JSON.stringify(lesson)}, ${process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'})
-      ON CONFLICT (day_number) DO UPDATE SET lesson_json = EXCLUDED.lesson_json, updated_at = now()
-    `.catch((e: any) => console.error("Failed to cache lesson:", e));
+    // Await cache write — critical for preventing regeneration on next request
+    try {
+      await sql`
+        INSERT INTO generated_lessons (day_number, lesson_json, model)
+        VALUES (${dayNumber}, ${JSON.stringify(lesson)}, ${process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'})
+        ON CONFLICT (day_number) DO UPDATE SET lesson_json = EXCLUDED.lesson_json, updated_at = now()
+      `;
+    } catch (e: any) {
+      console.error("Failed to cache lesson:", e);
+    }
   }
 
   // 3. Send email with TTS audio (1.8s hard timeout — skips silently if Google TTS is blocked)
