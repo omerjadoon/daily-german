@@ -552,14 +552,24 @@ export async function sendTodayManual(): Promise<{ alreadySent: boolean; dayNumb
     `.catch((e: any) => console.error("Failed to cache lesson:", e));
   }
 
-  // 3. Send email (no TTS, no letter — just the main lesson, fast)
+  // 3. Send email with TTS audio (1.8s hard timeout — skips silently if Google TTS is blocked)
   logEvent("email_send_started", dayNumber, `Manual send initiated to ${emailTo}.`);
 
   const html = generateHtmlEmail(lesson);
   const text = generateTextEmail(lesson);
   const subject = lesson.subject;
 
-  const messageId = await sendTutorEmail({ to: emailTo, subject, html, text, attachments: [] });
+  const storyAudioBase64 = await getGermanTtsBase64(lesson.storyGerman).catch(() => null);
+
+  const messageId = await sendTutorEmail({
+    to: emailTo,
+    subject,
+    html,
+    text,
+    attachments: storyAudioBase64
+      ? [{ content: storyAudioBase64, filename: `day${dayNumber}_story.mp3`, contentType: "audio/mpeg" }]
+      : [],
+  });
 
   // 4. Record send (best-effort, non-blocking)
   sql`
