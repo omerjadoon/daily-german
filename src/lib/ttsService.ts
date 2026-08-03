@@ -118,12 +118,13 @@ export async function getGermanTtsBuffer(
 
     console.log(`[TTS] Synthesising ${chunks.length} chunk(s) in parallel.`);
 
-    // Set a strict timeout of 1800ms for all fetches combined to avoid serverless function timeouts
+    // 5-second timeout — safe now that lesson generation is cached separately.
+    // Lessons are loaded from DB in ~100ms, leaving ~8s for TTS + email send.
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
-      console.warn("[TTS] Fetch timeout reached, aborting all chunks.");
+      console.warn("[TTS] Fetch timeout reached (5s), aborting all chunks.");
       controller.abort();
-    }, 1800);
+    }, 5000);
 
     try {
       const fetchPromises = chunks.map(chunk => fetchTtsChunk(chunk, controller.signal));
